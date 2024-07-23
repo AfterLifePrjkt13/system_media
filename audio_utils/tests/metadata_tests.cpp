@@ -458,13 +458,13 @@ TEST(metadata_tests, c) {
     ASSERT_GT(length, 0); // if gt 0, the bs has been updated to a new value.
     ASSERT_EQ((size_t)length, audio_metadata_byte_string_len(bs));
     ASSERT_EQ((size_t)length, dataByteStringLen(bs));
-    ASSERT_EQ(byteStringFromData(d).size(), ByteString(bs, length).size());
+    ASSERT_EQ(byteStringFromData(d).size(), ByteString(bs, bs + length).size());
     audio_metadata_t *metadataFromBs = audio_metadata_from_byte_string(bs, length);
     free(bs);
     bs = nullptr;
     length = byte_string_from_audio_metadata(metadataFromBs, &bs);
     ASSERT_GT(length, 0); // if gt 0, the bs has been updated to a new value.
-    ASSERT_EQ(byteStringFromData(d), ByteString(bs, length));
+    ASSERT_EQ(byteStringFromData(d), ByteString(bs, bs + length));
     ASSERT_EQ((size_t)length, audio_metadata_byte_string_len(bs));
     ASSERT_EQ((size_t)length, dataByteStringLen(bs));
     free(bs);
@@ -499,13 +499,13 @@ TEST(metadata_tests, empty_data_c) {
     ASSERT_EQ((size_t)length, dataByteStringLen(bs));
 
     Data d;  // empty metadata container.
-    ASSERT_EQ(byteStringFromData(d).size(), ByteString(bs, length).size());
+    ASSERT_EQ(byteStringFromData(d).size(), ByteString(bs, bs + length).size());
     std::unique_ptr<audio_metadata_t, decltype(&audio_metadata_destroy)>
             metadataFromBs{audio_metadata_from_byte_string(bs, length), audio_metadata_destroy};
     length = byte_string_from_audio_metadata(metadataFromBs.get(), &bs);
     ASSERT_GT(length, 0); // if gt 0, the bs has been updated to a new value.
     bs_scoped_deleter.reset(bs);
-    ASSERT_EQ(byteStringFromData(d), ByteString(bs, length));
+    ASSERT_EQ(byteStringFromData(d), ByteString(bs, bs + length));
     ASSERT_EQ((size_t)length, audio_metadata_byte_string_len(bs));
     ASSERT_EQ((size_t)length, dataByteStringLen(bs));
 };

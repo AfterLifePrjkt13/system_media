@@ -20,6 +20,7 @@
 #include <stdint.h>
 #include <system/audio.h>
 #include <audio_utils/spdif/FrameScanner.h>
+#include <audio_utils/spdif/SPDIF.h>
 
 namespace android {
 
@@ -27,7 +28,6 @@ namespace android {
 #define AC3_NUM_FRAME_SIZE_TABLE_ENTRIES          38
 #define AC3_PCM_FRAMES_PER_BLOCK                 256
 #define AC3_MAX_BLOCKS_PER_SYNC_FRAME_BLOCK        6
-#define EAC3_RATE_MULTIPLIER                       4
 #define EAC3_NUM_SAMPLE_RATE_TABLE_ENTRIES         3
 #define EAC3_NUM_BLOCKS_PER_FRAME_TABLE_ENTRIES   38
 #define EAC3_MAX_SUBSTREAMS                        8
@@ -40,7 +40,7 @@ public:
 
     virtual int getMaxChannels()   const { return 5 + 1; } // 5.1 surround
 
-    virtual int getMaxSampleFramesPerSyncFrame() const { return EAC3_RATE_MULTIPLIER
+    int getMaxSampleFramesPerSyncFrame() const override { return kSpdifRateMultiplierEac3
             * AC3_MAX_BLOCKS_PER_SYNC_FRAME_BLOCK * AC3_PCM_FRAMES_PER_BLOCK; }
     virtual int getSampleFramesPerSyncFrame() const;
 

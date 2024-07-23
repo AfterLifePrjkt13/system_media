@@ -18,14 +18,12 @@
 #define LOG_TAG "audio_utils_power"
 #include <log/log.h>
 
-#include <algorithm>
-#include <math.h>
-
 #include <audio_utils/power.h>
+
+#include <audio_utils/intrinsic_utils.h>
 #include <audio_utils/primitives.h>
 
 #if defined(__aarch64__) || defined(__ARM_NEON__)
-#include <arm_neon.h>
 #define USE_NEON
 #endif
 
@@ -154,44 +152,41 @@ inline void energy(const void *amplitudes, size_t size, size_t numChannels, floa
     energyRef<FORMAT>(amplitudes, size, numChannels, out);
 }
 
-// fast float power computation for ARM processors that support NEON.
+// TODO(b/323611666) in some cases having a large kVectorWidth generic internal array is
+// faster than the NEON intrinsic version.  Optimize this.
 #ifdef USE_NEON
+// The type conversion appears faster if we use a neon accumulator type.
+// Using a vector length of 4 triggers the code below to use the neon type float32x4_t.
+constexpr size_t kVectorWidth16 = 4;     // neon float32x4_t
+constexpr size_t kVectorWidth32 = 4;     // neon float32x4_t
+constexpr size_t kVectorWidthFloat = 8;  // use generic intrinsics for float.
+#else
+constexpr size_t kVectorWidth16 = 8;
+constexpr size_t kVectorWidth32 = 8;
+constexpr size_t kVectorWidthFloat = 8;
+#endif
 
-template <typename T>
-float32x4_t convertToFloatVectorAmplitude(T vamplitude) = delete;
-
-template <>
-float32x4_t convertToFloatVectorAmplitude<float32x4_t>(float32x4_t vamplitude) {
-    return vamplitude;
-}
-
-template <>
-float32x4_t convertToFloatVectorAmplitude<int16x4_t>(int16x4_t vamplitude) {
-    const int32x4_t iamplitude = vmovl_s16(vamplitude); // expand s16 to s32 first
-    return vcvtq_f32_s32(iamplitude);
-}
-
-template <>
-float32x4_t convertToFloatVectorAmplitude<int32x4_t>(int32x4_t vamplitude) {
-    return vcvtq_f32_s32(vamplitude);
-}
-
-template <typename Vector, typename Scalar>
+template <typename Scalar, size_t N>
 inline float energyMonoVector(const void *amplitudes, size_t size)
-{
-    static_assert(sizeof(Vector) % sizeof(Scalar) == 0,
-             "Vector size must be a multiple of scalar size");
-    const size_t vectorLength = sizeof(Vector) / sizeof(Scalar); // typically 4 (a const)
-
-    // check pointer validity, must be aligned with scalar type.
+{    // check pointer validity, must be aligned with scalar type.
     const Scalar *samplitudes = reinterpret_cast<const Scalar *>(amplitudes);
     LOG_ALWAYS_FATAL_IF((uintptr_t)samplitudes % alignof(Scalar) != 0,
             "Non-element aligned address: %p %zu", samplitudes, alignof(Scalar));
 
     float accumulator = 0;
 
+#ifdef USE_NEON
+    using AccumulatorType = std::conditional_t<N == 4, float32x4_t,
+            android::audio_utils::intrinsics::internal_array_t<float, N>>;
+#else
+    using AccumulatorType = android::audio_utils::intrinsics::internal_array_t<float, N>;
+#endif
+
+    // seems that loading input data is fine using our generic intrinsic.
+    using Vector = android::audio_utils::intrinsics::internal_array_t<Scalar, N>;
+
     // handle pointer unaligned to vector type.
-    while ((uintptr_t)samplitudes % alignof(Vector) != 0 /* compiler optimized */ && size > 0) {
+    while ((uintptr_t)samplitudes % sizeof(Vector) != 0 /* compiler optimized */ && size > 0) {
         const float amp = (float)*samplitudes++;
         accumulator += amp * amp;
         --size;
@@ -201,21 +196,18 @@ inline float energyMonoVector(const void *amplitudes, size_t size)
     const Vector *vamplitudes = reinterpret_cast<const Vector *>(samplitudes);
 
     // clear vector accumulator
-    float32x4_t accum = vdupq_n_f32(0);
+    AccumulatorType accum{};
 
     // iterate over array getting sum of squares in vectorLength lanes.
     size_t i;
-    for (i = 0; i < size - size % vectorLength /* compiler optimized */; i += vectorLength) {
-        const float32x4_t famplitude = convertToFloatVectorAmplitude(*vamplitudes++);
-        accum = vmlaq_f32(accum, famplitude, famplitude);
+    const size_t limit = size - size % N;
+    for (i = 0; i < limit; i += N) {
+        const auto famplitude = vconvert<AccumulatorType>(*vamplitudes++);
+        accum = android::audio_utils::intrinsics::vmla(accum, famplitude, famplitude);
     }
 
-    // narrow vectorLength lanes of floats
-    float32x2_t accum2 = vadd_f32(vget_low_f32(accum), vget_high_f32(accum)); // get stereo volume
-    accum2 = vpadd_f32(accum2, accum2); // combine to mono
-
-    // accumulate vector
-    accumulator += vget_lane_f32(accum2, 0);
+    // add all components of the vector.
+    accumulator += android::audio_utils::intrinsics::vaddv(accum);
 
     // accumulate any trailing elements too small for vector size
     for (; i < size; ++i) {
@@ -228,13 +220,13 @@ inline float energyMonoVector(const void *amplitudes, size_t size)
 template <>
 inline float energyMono<AUDIO_FORMAT_PCM_FLOAT>(const void *amplitudes, size_t size)
 {
-    return energyMonoVector<float32x4_t, float>(amplitudes, size);
+    return energyMonoVector<float, kVectorWidthFloat>(amplitudes, size);
 }
 
 template <>
 inline float energyMono<AUDIO_FORMAT_PCM_16_BIT>(const void *amplitudes, size_t size)
 {
-    return energyMonoVector<int16x4_t, int16_t>(amplitudes, size)
+    return energyMonoVector<int16_t, kVectorWidth16>(amplitudes, size)
             * normalizeEnergy<AUDIO_FORMAT_PCM_16_BIT>();
 }
 
@@ -242,7 +234,7 @@ inline float energyMono<AUDIO_FORMAT_PCM_16_BIT>(const void *amplitudes, size_t 
 template <>
 inline float energyMono<AUDIO_FORMAT_PCM_32_BIT>(const void *amplitudes, size_t size)
 {
-    return energyMonoVector<int32x4_t, int32_t>(amplitudes, size)
+    return energyMonoVector<int32_t, kVectorWidth32>(amplitudes, size)
             * normalizeEnergy<AUDIO_FORMAT_PCM_32_BIT>();
 }
 
@@ -250,11 +242,9 @@ inline float energyMono<AUDIO_FORMAT_PCM_32_BIT>(const void *amplitudes, size_t 
 template <>
 inline float energyMono<AUDIO_FORMAT_PCM_8_24_BIT>(const void *amplitudes, size_t size)
 {
-    return energyMonoVector<int32x4_t, int32_t>(amplitudes, size)
+    return energyMonoVector<int32_t, kVectorWidth32>(amplitudes, size)
             * normalizeEnergy<AUDIO_FORMAT_PCM_8_24_BIT>();
 }
-
-#endif // USE_NEON
 
 } // namespace
 

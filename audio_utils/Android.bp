@@ -219,7 +219,9 @@ cc_library {
         "spdif/FrameScanner.cpp",
         "spdif/AC3FrameScanner.cpp",
         "spdif/DTSFrameScanner.cpp",
+        "spdif/SPDIFDecoder.cpp",
         "spdif/SPDIFEncoder.cpp",
+        "spdif/SPDIFFrameScanner.cpp",
     ],
 
     shared_libs: [

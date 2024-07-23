@@ -978,7 +978,7 @@ class EnumValue(Node):
     deprecated: A boolean, True if the enum should be deprecated.
     optional: A boolean
     visibility: A string, one of "system", "java_public", "ndk_public", "hidden", "public",
-                "fwk_java_public"
+                "fwk_java_public", "extension"
     notes: A string describing the notes, or None.
     sdk_notes: A string describing extra notes for public SDK only
     ndk_notes: A string describing extra notes for public NDK only
@@ -1047,7 +1047,7 @@ class EnumValue(Node):
 
   @property
   def hidden(self):
-    return self.visibility in {'hidden', 'ndk_public', 'test'}
+    return self.visibility in {'hidden', 'ndk_public', 'test', 'extension'}
 
   @property
   def ndk_hidden(self):

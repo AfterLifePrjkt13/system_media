@@ -23,6 +23,7 @@
 
 #ifdef __cplusplus
 
+#include <algorithm>
 #include <any>
 #include <map>
 #include <string>
@@ -554,7 +555,7 @@ using datum_size_t = uint32_t;
 
 // The particular implementation of ByteString may change
 // without affecting compatibility.
-using ByteString = std::basic_string<uint8_t>;
+using ByteString = std::vector<uint8_t>;
 
 /*
     These should correspond to the Java AudioMetadata.java
@@ -592,7 +593,7 @@ std::enable_if_t<
     bool
     >
 copyToByteString(const T& t, ByteString& bs) {
-    bs.append((uint8_t*)&t, sizeof(t));
+    bs.insert(bs.end(), (uint8_t*)&t, (uint8_t*)&t + sizeof(t));
     return true;
 }
 
@@ -609,7 +610,7 @@ bool copyToByteString(const V<Args...>& v, ByteString& bs) {
     index_size_t size = v.size();
     if (!copyToByteString(size, bs)) return false;
     if constexpr (std::is_same_v<std::decay_t<V<Args...>>, std::string>) {
-        bs.append((uint8_t*)v.c_str());
+        bs.insert(bs.end(), (uint8_t*)v.c_str(), (uint8_t*)v.c_str() + v.size());
     }  else /* constexpr */ {
         for (const auto &d : v) { // handles std::vector and std::map
             if (!copyToByteString(d, bs)) return false;
@@ -677,7 +678,8 @@ bool copyToByteString(const Datum& datum, ByteString &bs) {
              const size_t diff = bs.size() - idx - sizeof(datum_size);
              if (diff > std::numeric_limits<datum_size_t>::max()) return;
              datum_size = diff;
-             bs.replace(idx, sizeof(datum_size), (uint8_t*)&datum_size, sizeof(datum_size));
+             std::copy((uint8_t*)&datum_size, (uint8_t*)&datum_size + sizeof(datum_size),
+                       bs.begin() + idx);
              success = true;
          }, &datum) && success;
 }
@@ -707,7 +709,7 @@ std::enable_if_t<
 copyFromByteString(T *dest, const ByteString& bs, size_t& idx,
         ByteStringUnknowns *unknowns __attribute__((unused))) {
     if (idx + sizeof(T) > bs.size()) return false;
-    bs.copy((uint8_t*)dest, sizeof(T), idx);
+    std::copy(bs.begin() + idx, bs.begin() + idx + sizeof(T), (uint8_t*)dest);
     idx += sizeof(T);
     return true;
 }

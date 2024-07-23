@@ -30,7 +30,7 @@ package android.hardware.camera.metadata;
 @VintfStability
 @Backing(type="int")
 enum CameraMetadataSection {
-  % for sec in find_all_sections(metadata):
+  % for sec in find_all_sections_filtered(metadata, ('extension')):
     ${path_name(sec) | csym},
   % endfor
     VENDOR_SECTION = 0x8000,

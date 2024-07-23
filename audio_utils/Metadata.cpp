@@ -170,7 +170,8 @@ audio_metadata_t *audio_metadata_from_byte_string(const uint8_t *byteString, siz
         return nullptr;
     }
     return reinterpret_cast<audio_metadata_t *>(
-            new(std::nothrow) Data(dataFromByteString(ByteString(byteString, length))));
+            new(std::nothrow) Data(dataFromByteString(ByteString(byteString,
+                                                                 byteString + length))));
 }
 
 ssize_t byte_string_from_audio_metadata(audio_metadata_t *metadata, uint8_t **byteString) {
@@ -182,7 +183,7 @@ ssize_t byte_string_from_audio_metadata(audio_metadata_t *metadata, uint8_t **by
     if (*byteString == nullptr) {
         return -ENOMEM;
     }
-    memcpy(*byteString, bs.c_str(), bs.size());
+    memcpy(*byteString, bs.data(), bs.size());
     return bs.size();
 }
 

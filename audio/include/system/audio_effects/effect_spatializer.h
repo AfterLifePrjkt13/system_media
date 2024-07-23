@@ -86,7 +86,14 @@ typedef enum
 
     // Set/get the head tracking data connection mode: passes the mode followed by the sensor ID
     // on uint32_t
-    SPATIALIZER_PARAM_HEADTRACKING_CONNECTION
+    SPATIALIZER_PARAM_HEADTRACKING_CONNECTION,
+    // Set/get the actual input channel mask of the track being spatialized. This is required to
+    // support stereo spatialization (b/303920722) where number of active input channels would be
+    // different from the channel mask received during effect configuration.
+    // Stereo channels will be packed into 5.1 stream where the other 4 channels will contain
+    // silence. The effect can configure spatialization settings accordingly when this parameter is
+    // received.
+    SPATIALIZER_PARAM_INPUT_CHANNEL_MASK,
 } t_virtualizer_stage_params;
 
 // See SpatializationLevel.aidl

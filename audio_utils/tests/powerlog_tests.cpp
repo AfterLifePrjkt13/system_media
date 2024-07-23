@@ -18,6 +18,8 @@
 #define LOG_TAG "audio_utils_powerlog_tests"
 
 #include <audio_utils/PowerLog.h>
+
+#include <audio_utils/clock.h>
 #include <gtest/gtest.h>
 #include <iostream>
 #include <log/log.h>
@@ -28,13 +30,14 @@ static size_t countNewLines(const std::string &s) {
     return std::count(s.begin(), s.end(), '\n');
 }
 
-TEST(audio_utils_powerlog, basic) {
+TEST(audio_utils_powerlog, basic_level_1) {
     auto plog = std::make_unique<PowerLog>(
             48000 /* sampleRate */,
             1 /* channelCount */,
             AUDIO_FORMAT_PCM_16_BIT,
             100 /* entries */,
-            1 /* framesPerEntry */);
+            1 /* framesPerEntry */,
+            1 /* levels */);
 
     // header
     EXPECT_EQ((size_t)1, countNewLines(plog->dumpToString()));
@@ -102,6 +105,92 @@ Signal power history:
 |____
 
      */
+}
+
+TEST(audio_utils_powerlog, basic_level_2) {
+    const uint32_t kSampleRate = 48000;
+    auto plog = std::make_unique<PowerLog>(
+            kSampleRate /* sampleRate */,
+            1 /* channelCount */,
+            AUDIO_FORMAT_PCM_16_BIT,
+            200 /* entries */,
+            1 /* framesPerEntry */,
+            2 /* levels */);
+
+    // header
+    EXPECT_EQ((size_t)2, countNewLines(plog->dumpToString()));
+
+    const int16_t zero = 0;
+    const int16_t half = 0x4000;
+    const std::vector<int16_t> ary(60, 0x1000);
+
+    plog->log(&half, 1 /* frame */, 0 /* nowNs */);
+    plog->log(&half, 1 /* frame */, 1 * NANOS_PER_SECOND / kSampleRate);
+    plog->log(&half, 1 /* frame */, 2 * NANOS_PER_SECOND / kSampleRate);
+    plog->log(ary.data(), ary.size(), 30 * NANOS_PER_SECOND / kSampleRate);
+
+    EXPECT_EQ((size_t)10, countNewLines(plog->dumpToString(
+            "" /* prefix */, 0 /* lines */, 0 /* limitNs */, false /* logPlot */)));
+
+    // add logplot
+    EXPECT_EQ((size_t)28, countNewLines(plog->dumpToString()));
+
+    plog->log(&zero, 1 /* frame */, 100 * NANOS_PER_SECOND / kSampleRate);
+    // zero termination doesn't change this.
+    EXPECT_EQ((size_t)28, countNewLines(plog->dumpToString()));
+
+    // but adding next line does.
+    plog->log(&half, 1 /* frame */, 101 * NANOS_PER_SECOND / kSampleRate);
+    EXPECT_EQ((size_t)29, countNewLines(plog->dumpToString()));
+
+    // truncating on lines (this does not include the logplot).
+    EXPECT_EQ((size_t)22, countNewLines(plog->dumpToString(
+            "" /* prefix */, 4 /* lines */)));
+
+    // truncating on time as well.
+    EXPECT_EQ((size_t)29, countNewLines(plog->dumpToString(
+            "" /* prefix */, 0 /* lines */, 2 /* limitNs */)));
+    // truncating on different time limit.
+    EXPECT_EQ((size_t)29, countNewLines(plog->dumpToString(
+            "" /* prefix */, 0 /* lines */, 3 /* limitNs */)));
+
+    // truncating on a larger line count (this doesn't include the logplot).
+    EXPECT_EQ((size_t)21, countNewLines(plog->dumpToString(
+            "" /* prefix */, 3 /* lines */, 2 /* limitNs */)));
+
+    plog->dump(0 /* fd (stdout) */);
+
+    // The output below depends on the local time zone.
+    // The indentation below is exact, check alignment.
+    /*
+Signal power history (resolution: 0.4 ms):
+ 12-31 16:00:00.000: [  -14.3  -18.1  -18.1  -18.1
+Signal power history (resolution: 0.0 ms):
+ 12-31 16:00:00.000: [   -6.0   -6.0   -6.0  -18.1  -18.1  -18.1  -18.1  -18.1  -18.1  -18.1
+ 12-31 16:00:00.000:    -18.1  -18.1  -18.1  -18.1  -18.1  -18.1  -18.1  -18.1  -18.1  -18.1
+ 12-31 16:00:00.000:    -18.1  -18.1  -18.1  -18.1  -18.1  -18.1  -18.1  -18.1  -18.1  -18.1
+ 12-31 16:00:00.001:    -18.1  -18.1  -18.1  -18.1  -18.1  -18.1  -18.1  -18.1  -18.1  -18.1
+ 12-31 16:00:00.001:    -18.1  -18.1  -18.1  -18.1  -18.1  -18.1  -18.1  -18.1  -18.1  -18.1
+ 12-31 16:00:00.001:    -18.1  -18.1  -18.1  -18.1  -18.1  -18.1  -18.1  -18.1  -18.1  -18.1
+ 12-31 16:00:00.001:    -18.1  -18.1  -18.1 ] sum(2.3)
+ 12-31 16:00:00.002: [   -6.0
+
+     -6.0 -|***                                                            |
+     -7.0 -|                                                               |
+     -8.0 -|                                                               |
+     -9.0 -|                                                               |
+    -10.0 -|                                                               |
+    -11.0 -|                                                               |
+    -12.0 -|                                                               |
+    -13.0 -|                                                               |
+    -14.0 -|                                                               |
+    -15.0 -|                                                               |
+    -16.0 -|                                                               |
+    -17.0 -|                                                               |
+    -18.0 -|   ************************************************************|
+    -19.0 -|                                                               |
+           |________________________________________________________________
+    */
 }
 
 TEST(audio_utils_powerlog, c) {

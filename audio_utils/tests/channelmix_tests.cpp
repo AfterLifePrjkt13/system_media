@@ -24,6 +24,7 @@ static constexpr audio_channel_mask_t kOutputChannelMasks[] = {
     AUDIO_CHANNEL_OUT_5POINT1, // AUDIO_CHANNEL_OUT_5POINT1_BACK
     AUDIO_CHANNEL_OUT_7POINT1,
     AUDIO_CHANNEL_OUT_7POINT1POINT4,
+    AUDIO_CHANNEL_OUT_9POINT1POINT6,
 };
 
 static constexpr audio_channel_mask_t kInputChannelMasks[] = {
@@ -49,6 +50,7 @@ static constexpr audio_channel_mask_t kInputChannelMasks[] = {
     AUDIO_CHANNEL_OUT_5POINT1POINT4,
     AUDIO_CHANNEL_OUT_7POINT1POINT2,
     AUDIO_CHANNEL_OUT_7POINT1POINT4,
+    AUDIO_CHANNEL_OUT_9POINT1POINT6,
     AUDIO_CHANNEL_OUT_13POINT_360RA,
     AUDIO_CHANNEL_OUT_22POINT2,
     audio_channel_mask_t(AUDIO_CHANNEL_OUT_22POINT2
@@ -325,6 +327,8 @@ public:
 
 static constexpr const char *kName1[] = {"_replace_", "_accumulate_"};
 
+// The Balance test checks that the power output is symmetric with left / right channel swap.
+
 TEST_P(ChannelMixTest, balance) {
     testBalance(kOutputChannelMasks[std::get<OUTPUT_CHANNEL_MASK_POSITION>(GetParam())],
             kInputChannelMasks[std::get<INPUT_CHANNEL_MASK_POSITION>(GetParam())],
@@ -349,6 +353,77 @@ INSTANTIATE_TEST_SUITE_P(
                     kName1[std::get<ACCUMULATE_POSITION>(info.param)] + std::to_string(in_index);
             return name;
         });
+
+// --------------------------------------------------------------------------------------
+
+using ChannelMixIdentityParam = std::tuple<int /* channel mask */, bool /* accumulate */>;
+
+enum {
+    IDENTITY_CHANNEL_MASK_POSITION = 0,
+    IDENTITY_ACCUMULATE_POSITION = 1,
+};
+
+class ChannelMixIdentityTest : public ::testing::TestWithParam<ChannelMixIdentityParam> {
+public:
+
+    void testIdentity(audio_channel_mask_t channelMask, bool accumulate) {
+        const size_t frames = 100;
+        const unsigned channels = audio_channel_count_from_out_mask(channelMask);
+        std::vector<float> input(frames * channels);
+        std::vector<float> output(frames * channels);
+
+        auto remix = ::android::audio_utils::channels::IChannelMix::create(channelMask);
+
+        constexpr float kInvalid = -0.7f;
+        constexpr float kImpulse = 0.3f;
+
+        for (size_t i = 0; i < channels; ++i) {
+            // A remix with one of the channels specified should equal itself.
+
+            std::fill(input.begin(), input.end(), 0.f);
+            if (!accumulate) std::fill(output.begin(), output.end(), kInvalid);
+            for (size_t j = 0; j < frames; ++j) {
+                input[j * channels + i] = kImpulse;
+            }
+
+            // Do the channel mix
+            remix->process(input.data(), output.data(), frames, false /* accumulate */,
+                           channelMask);
+
+            EXPECT_EQ(0, memcmp(input.data(), output.data(), frames * channels * sizeof(float)));
+        }
+    }
+};
+
+// The Identity test checks that putting audio data on an input channel included in the
+// destination channel mask must be preserved on the same channel on the output.
+
+// For simplicity, we use the same channel mask for input and output.
+// This is not optimized out here because it doesn't happen in practice: we only set
+// up the ChannelMix object when the channel mask differs.
+
+TEST_P(ChannelMixIdentityTest, identity) {
+    testIdentity(kOutputChannelMasks[std::get<IDENTITY_CHANNEL_MASK_POSITION>(GetParam())],
+            std::get<IDENTITY_ACCUMULATE_POSITION>(GetParam()));
+}
+
+INSTANTIATE_TEST_SUITE_P(
+        ChannelMixIdentityTestAll, ChannelMixIdentityTest,
+        ::testing::Combine(
+            ::testing::Range(0, (int)std::size(kOutputChannelMasks)),
+            ::testing::Bool() // accumulate off, on
+        ),
+        [](const testing::TestParamInfo<ChannelMixIdentityTest::ParamType>& info) {
+            const int index = std::get<IDENTITY_CHANNEL_MASK_POSITION>(info.param);
+            const audio_channel_mask_t channelMask = kOutputChannelMasks[index];
+            const std::string name =
+                    std::string(audio_channel_out_mask_to_string(channelMask)) +
+                    kName1[std::get<IDENTITY_ACCUMULATE_POSITION>(info.param)] +
+                    std::to_string(index);
+            return name;
+        });
+
+// --------------------------------------------------------------------------------------
 
 using StereoDownMix = android::audio_utils::channels::ChannelMix<AUDIO_CHANNEL_OUT_STEREO>;
 TEST(channelmix, input_channel_mask) {

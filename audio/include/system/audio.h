@@ -128,6 +128,10 @@ typedef struct {
 /** The separator for tags. */
 static const char AUDIO_ATTRIBUTES_TAGS_SEPARATOR = ';';
 
+// Keep sync with android/media/AudioProductStrategy.java
+static const audio_flags_mask_t AUDIO_FLAGS_AFFECT_STRATEGY_SELECTION =
+        (audio_flags_mask_t)(AUDIO_FLAG_AUDIBILITY_ENFORCED | AUDIO_FLAG_SCO | AUDIO_FLAG_BEACON);
+
 static const audio_attributes_t AUDIO_ATTRIBUTES_INITIALIZER = {
     /* .content_type = */ AUDIO_CONTENT_TYPE_UNKNOWN,
     /* .usage = */ AUDIO_USAGE_UNKNOWN,
@@ -329,6 +333,24 @@ static inline CONSTEXPR audio_channel_mask_t audio_channel_mask_from_representat
         audio_channel_representation_t representation, uint32_t bits)
 {
     return (audio_channel_mask_t) ((representation << AUDIO_CHANNEL_COUNT_MAX) | bits);
+}
+
+/*
+ * Returns true so long as stereo channels are present in the channel mask.
+ *
+ * This is the minimum constraint for spatialization in Android V.
+ *
+ * Prior to V, AUDIO_CHANNEL_OUT_QUAD was the minimum constraint.
+ * Prior to T, AUDIO_CHANNEL_OUT_5POINT1 was the minimum constraint.
+ *
+ * TODO(b/303920722) rename to audio_is_channel_mask_spatialized() after testing
+ * is complete.
+ * TODO(b/316909431) flagged at caller due to lack of native_bridge flag support.
+ */
+static inline CONSTEXPR bool audio_channel_mask_contains_stereo(audio_channel_mask_t channelMask) {
+    return audio_channel_mask_get_representation(channelMask)
+                == AUDIO_CHANNEL_REPRESENTATION_POSITION
+            && (channelMask & AUDIO_CHANNEL_OUT_STEREO) == AUDIO_CHANNEL_OUT_STEREO;
 }
 
 /*

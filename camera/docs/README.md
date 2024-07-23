@@ -14,16 +14,19 @@ C code, Java code, and even XML itself (as a round-trip validity check).
 * Tidy              - Cleans up the XML/HTML files.
 * XML Lint          - Validates XML against XSD schema.
 
-## Quick Setup (Ubuntu Precise):
-sudo apt-get install python-mako
-sudo apt-get install python-bs4
-sudo apt-get install python-markdown
-sudo apt-get install tidy
-sudo apt-get install libxml2-utils #xmllint
+## Quick Setup (Debian Rodete):
+NOTE: Debian (and most Linux distros) no longer package Python 2.
+      Python 3 dependencies are listed below.
+```
+sudo apt install python3-mako \
+                 python3-bs4 \
+                 python3-markdown \
+                 tidy \
+                 libxml2-utils
+```
 
-## Quick Setup (MacPorts)
-sudo port install py27-beautifulsoup4
-sudo port install py27-mako
-sudo port install py27-markdown
-sudo port install tidy
-sudo port install libxml2 #xmllint
+## Quick Usage:
+1. Modify or add to `metadata_definition.xml`
+2. Execute `metadata-generate`
+3. Run `m ds-docs` to make sure the javadoc is correctly generated
+4. Commit and Upload the repos listed at the end of `metadata-generate`

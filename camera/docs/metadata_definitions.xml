@@ -58,6 +58,9 @@ xsi:schemaLocation="http://schemas.android.com/service/camera/metadata/ metadata
     <typedef name="pairDoubleDouble">
       <language name="java">android.util.Pair&lt;Double,Double&gt;</language>
     </typedef>
+    <typedef name="pairIntegerInteger">
+      <language name="java">android.util.Pair&lt;Integer,Integer&gt;</language>
+    </typedef>
     <typedef name="rectangle">
       <language name="java">android.graphics.Rect</language>
     </typedef>
@@ -121,6 +124,9 @@ xsi:schemaLocation="http://schemas.android.com/service/camera/metadata/ metadata
     </typedef>
     <typedef name="point">
       <language name="java">android.graphics.Point</language>
+    </typedef>
+    <typedef name="pointF">
+      <language name="java">android.graphics.PointF</language>
     </typedef>
     <typedef name="tonemapCurve">
       <language name="java">android.hardware.camera2.params.TonemapCurve</language>
@@ -9492,13 +9498,15 @@ xsi:schemaLocation="http://schemas.android.com/service/camera/metadata/ metadata
 
           should be interpreted in the effective after raw crop field-of-view coordinate system.
           In this coordinate system,
-          {preCorrectionActiveArraySize.left, preCorrectionActiveArraySize.top} corresponds to the
+          {android.sensor.info.preCorrectionActiveArraySize.left,
+           android.sensor.info.preCorrectionActiveArraySize.top} corresponds to the
           the top left corner of the cropped RAW frame and
-          {preCorrectionActiveArraySize.right, preCorrectionActiveArraySize.bottom} corresponds to
+          {android.sensor.info.preCorrectionActiveArraySize.right,
+           android.sensor.info.preCorrectionActiveArraySize.bottom} corresponds to
           the bottom right corner. Client applications must use the values of the keys
           in the CaptureResult metadata if present.
 
-          Crop regions (android.scaler.CropRegion), AE/AWB/AF regions and face coordinates still
+          Crop regions android.scaler.cropRegion, AE/AWB/AF regions and face coordinates still
           use the android.sensor.info.activeArraySize coordinate system as usual.
           </details>
         </entry>
@@ -11303,7 +11311,7 @@ xsi:schemaLocation="http://schemas.android.com/service/camera/metadata/ metadata
         </entry>
       </dynamic>
       <static>
-        <entry name="readoutTimestamp" type="byte" visibility="fwk_java_public"
+        <entry name="readoutTimestamp" type="byte" visibility="java_public"
           enum="true" hwlevel="legacy" hal_version="3.8">
         <enum>
           <value>NOT_SUPPORTED
@@ -11345,7 +11353,10 @@ xsi:schemaLocation="http://schemas.android.com/service/camera/metadata/ metadata
           generally constant over time for the same set of output resolutions and capture settings.
         </details>
         <hal_details>
-          This property is populated by the camera framework and must not be set at the HAL layer.
+          This property may be set by HAL layers that implement the AIDL interface. If not set
+          camera framework will implicitly set it to HARDWARE for all AIDL HALs. Camera framework
+          will force set this to NOT_SUPPORTED for all HIDL HALs, regerdless of whether the HAL
+          provided a value or not.
         </hal_details>
       </entry>
     </static>
@@ -13069,7 +13080,7 @@ xsi:schemaLocation="http://schemas.android.com/service/camera/metadata/ metadata
                 without an exception being thrown.
 
           * VIDEO_STABILIZATION_MODES: {OFF, PREVIEW}
-          * AE_TARGET_FPS_RANGE: {{*, 30}, {*, 60}}
+          * AE_TARGET_FPS_RANGE: { {*, 30}, {*, 60} }
           * DYNAMIC_RANGE_PROFILE: {STANDARD, HLG10}
 
           </details>
@@ -14737,6 +14748,248 @@ xsi:schemaLocation="http://schemas.android.com/service/camera/metadata/ metadata
           </details>
         </entry>
       </static>
+    </section>
+    <section name="efv">
+      <static>
+        <entry name="paddingZoomFactorRange" type="float" visibility="extension"
+            optional="true" container="array" typedef="rangeFloat" aconfig_flag="concert_mode"
+            hal_version="3.9">
+          <array>
+            <size>2</size>
+          </array>
+          <description>
+          Minimum and maximum padding zoom factors supported by this camera device for
+          android.efv.paddingZoomFactor used for the
+          {@link android.hardware.camera2.CameraExtensionCharacteristics#EXTENSION_EYES_FREE_VIDEOGRAPHY}
+          extension.
+          </description>
+          <units>A pair of padding zoom factors in floating-points:
+          (minPaddingZoomFactor, maxPaddingZoomFactor)</units>
+          <range>
+            1.0 &lt; minPaddingZoomFactor &lt;= maxPaddingZoomFactor
+          </range>
+          <details>
+          The minimum and maximum padding zoom factors supported by the device for
+          android.efv.paddingZoomFactor used as part of the
+          {@link android.hardware.camera2.CameraExtensionCharacteristics#EXTENSION_EYES_FREE_VIDEOGRAPHY}
+          extension feature. This extension specific camera characteristic can be queried using
+          {@link android.hardware.camera2.CameraExtensionCharacteristics#get}.
+          </details>
+        </entry>
+      </static>
+      <controls>
+        <entry name="paddingZoomFactor" type="float" visibility="extension"
+            aconfig_flag="concert_mode" hal_version="3.9">
+          <description>Used to apply an additional digital zoom factor for the
+          {@link android.hardware.camera2.CameraExtensionCharacteristics#EXTENSION_EYES_FREE_VIDEOGRAPHY}
+          extension in {@link android.hardware.camera2.CameraMetadata#EFV_STABILIZATION_MODE_LOCKED} mode.
+          </description>
+          <range>android.efv.paddingZoomFactorRange</range>
+          <details>
+          For the {@link android.hardware.camera2.CameraExtensionCharacteristics#EXTENSION_EYES_FREE_VIDEOGRAPHY}
+          feature, an additional zoom factor is applied on top of the existing android.control.zoomRatio.
+          This additional zoom factor serves as a buffer to provide more flexibility for the
+          {@link android.hardware.camera2.CameraMetadata#EFV_STABILIZATION_MODE_LOCKED}
+          mode. If android.efv.paddingZoomFactor is not set, the default will be used.
+          The effectiveness of the stabilization may be influenced by the amount of padding zoom
+          applied. A higher padding zoom factor can stabilize the target region more effectively
+          with greater flexibility but may potentially impact image quality. Conversely, a lower
+          padding zoom factor may be used to prioritize preserving image quality, albeit with less
+          leeway in stabilizing the target region. It is recommended to set the
+          android.efv.paddingZoomFactor to at least 1.5.
+
+          If android.efv.autoZoom is enabled, the requested android.efv.paddingZoomFactor will be overridden.
+          android.efv.maxPaddingZoomFactor can be checked for more details on controlling the 
+          padding zoom factor during android.efv.autoZoom.
+          </details>
+        </entry>
+        <entry name="autoZoom" type="byte" visibility="extension" enum="true"
+            typedef="boolean" aconfig_flag="concert_mode" hal_version="3.9">
+          <enum>
+            <value>TRUE</value>
+            <value>FALSE</value>
+          </enum>
+          <description>Used to enable or disable auto zoom for the
+          {@link android.hardware.camera2.CameraExtensionCharacteristics#EXTENSION_EYES_FREE_VIDEOGRAPHY}
+          extension in {@link android.hardware.camera2.CameraMetadata#EFV_STABILIZATION_MODE_LOCKED} mode.
+          </description>
+          <details>
+          Turn on auto zoom to let the
+          {@link android.hardware.camera2.CameraExtensionCharacteristics#EXTENSION_EYES_FREE_VIDEOGRAPHY}
+          feature decide at any given point a combination of
+          android.control.zoomRatio and android.efv.paddingZoomFactor
+          to keep the target region in view and stabilized. The combination chosen by the
+          {@link android.hardware.camera2.CameraExtensionCharacteristics#EXTENSION_EYES_FREE_VIDEOGRAPHY}
+          will equal the requested android.control.zoomRatio multiplied with the requested
+          android.efv.paddingZoomFactor. A limit can be set on the padding zoom if wanting
+          to control image quality further using android.efv.maxPaddingZoomFactor.
+          </details>
+        </entry>
+        <entry name="maxPaddingZoomFactor" type="float" visibility="extension"
+            aconfig_flag="concert_mode" hal_version="3.9">
+          <description>Used to limit the android.efv.paddingZoomFactor if
+          android.efv.autoZoom is enabled for the
+          {@link android.hardware.camera2.CameraExtensionCharacteristics#EXTENSION_EYES_FREE_VIDEOGRAPHY}
+          extension in {@link android.hardware.camera2.CameraMetadata#EFV_STABILIZATION_MODE_LOCKED} mode.
+          </description>
+          <range>The range of android.efv.paddingZoomFactorRange. Use a value greater than or equal to
+          the android.efv.paddingZoomFactor to effectively utilize this key.</range>
+          <details>
+          If android.efv.autoZoom is enabled, this key can be used to set a limit
+          on the android.efv.paddingZoomFactor chosen by the
+          {@link android.hardware.camera2.CameraExtensionCharacteristics#EXTENSION_EYES_FREE_VIDEOGRAPHY}
+          extension in {@link android.hardware.camera2.CameraMetadata#EFV_STABILIZATION_MODE_LOCKED} mode
+          to control image quality.
+          </details>
+        </entry>
+        <entry name="stabilizationMode" type="int32" visibility="extension" enum="true"
+            aconfig_flag="concert_mode" hal_version="3.9">
+          <enum>
+            <value>OFF
+              <notes>
+                No stabilization.
+              </notes></value>
+            <value>GIMBAL
+              <notes>
+                Gimbal stabilization mode.
+              </notes></value>
+            <value>LOCKED
+              <notes>
+                Locked stabilization mode which uses the
+                {@link android.hardware.camera2.CameraExtensionCharacteristics#EXTENSION_EYES_FREE_VIDEOGRAPHY}
+                stabilization to directionally steady the target region.
+              </notes></value>
+          </enum>
+          <description>Set the stabilization mode for the
+          {@link android.hardware.camera2.CameraExtensionCharacteristics#EXTENSION_EYES_FREE_VIDEOGRAPHY}
+          extension
+          </description>
+          <details>
+          The desired stabilization mode. Gimbal stabilization mode provides simple, non-locked
+          video stabilization. Locked mode uses the
+          {@link android.hardware.camera2.CameraExtensionCharacteristics#EXTENSION_EYES_FREE_VIDEOGRAPHY}
+          stabilization feature to fixate on the current region, utilizing it as the target area for
+          stabilization.
+          </details>
+        </entry>
+        <entry name="translateViewport" type="int32" visibility="extension"
+            typedef="pairIntegerInteger" aconfig_flag="concert_mode" hal_version="3.9">
+          <description>Used to update the target region for the
+          {@link android.hardware.camera2.CameraExtensionCharacteristics#EXTENSION_EYES_FREE_VIDEOGRAPHY}
+          extension in {@link android.hardware.camera2.CameraMetadata#EFV_STABILIZATION_MODE_LOCKED} mode.
+          </description>
+          <range>android.util.Pair&lt;Integer,Integer&gt; represents the
+          &lt;Horizontal,Vertical&gt; shift. The range for the horizontal shift is
+          [-max(android.efv.paddingRegion-left), max(android.efv.paddingRegion-right)].
+          The range for the vertical shift is
+          [-max(android.efv.paddingRegion-top), max(android.efv.paddingRegion-bottom)]
+          </range>
+          <details>
+          A android.util.Pair&lt;Integer,Integer&gt; that represents the desired
+          &lt;Horizontal,Vertical&gt; shift of the current locked view (or target region) in
+          pixels. Negative values indicate left and upward shifts, while positive values indicate
+          right and downward shifts in the active array coordinate system.
+          </details>
+        </entry>
+        <entry name="rotateViewport" type="float" visibility="extension"
+            aconfig_flag="concert_mode" hal_version="3.9">
+          <description>Representing the desired clockwise rotation
+          of the target region in degrees for the
+          {@link android.hardware.camera2.CameraExtensionCharacteristics#EXTENSION_EYES_FREE_VIDEOGRAPHY}
+          extension in {@link android.hardware.camera2.CameraMetadata#EFV_STABILIZATION_MODE_LOCKED} mode.
+          </description>
+          <range>0 to 360
+          </range>
+          <details>
+          Value representing the desired clockwise rotation of the target
+          region in degrees.
+          </details>
+        </entry>
+      </controls>
+      <dynamic>
+        <entry name="paddingRegion" type="int32" visibility="extension" container="array"
+            aconfig_flag="concert_mode" hal_version="3.9">
+          <array>
+            <size>4</size>
+          </array>
+          <description>The padding region for the
+          {@link android.hardware.camera2.CameraExtensionCharacteristics#EXTENSION_EYES_FREE_VIDEOGRAPHY}
+          extension in {@link android.hardware.camera2.CameraMetadata#EFV_STABILIZATION_MODE_LOCKED} mode.
+          </description>
+          <range>The padding is the number of remaining pixels of padding in each direction.
+          The pixels reference the active array coordinate system. Negative values indicate the target
+          region is out of bounds. The value for this key may be null for when the stabilization mode is
+          in {@link android.hardware.camera2.CameraMetadata#EFV_STABILIZATION_MODE_OFF}
+          or {@link android.hardware.camera2.CameraMetadata#EFV_STABILIZATION_MODE_GIMBAL} mode.
+          </range>
+          <details>
+          An array [left, top, right, bottom] of the padding in pixels remaining on all four sides
+          before the target region starts to go out of bounds.
+
+          The padding region denotes the area surrounding the stabilized target region within which
+          the camera can be moved while maintaining the target region in view. As the camera moves,
+          the padding region adjusts to represent the proximity of the target region to the
+          boundary, which is the point at which the target region will start to go out of bounds.
+          </details>
+        </entry>
+        <entry name="autoZoomPaddingRegion" type="int32" visibility="extension"
+            container="array" aconfig_flag="concert_mode" hal_version="3.9">
+          <array>
+            <size>4</size>
+          </array>
+          <description>The padding region when android.efv.autoZoom is enabled for the
+          {@link android.hardware.camera2.CameraExtensionCharacteristics#EXTENSION_EYES_FREE_VIDEOGRAPHY}
+          extension in {@link android.hardware.camera2.CameraMetadata#EFV_STABILIZATION_MODE_LOCKED} mode.
+          </description>
+          <range>The padding is the number of remaining pixels of padding in each direction
+          when android.efv.autoZoom is enabled. Negative values indicate the target region is out of bounds.
+          The value for this key may be null for when the android.efv.autoZoom is not enabled.</range>
+          <details>
+          An array [left, top, right, bottom] of the padding in pixels remaining on all four sides
+          before the target region starts to go out of bounds.
+
+          This may differ from android.efv.paddingRegion as the field of view can change
+          during android.efv.autoZoom, altering the boundary region and thus updating the padding between the
+          target region and the boundary.
+          </details>
+        </entry>
+        <entry name="targetCoordinates" type="float" visibility="extension"
+            container="array" typedef="pointF" aconfig_flag="concert_mode" hal_version="3.9">
+          <array>
+            <size>4</size>
+            <size>n</size>
+          </array>
+          <description>List of coordinates representing the target region relative to the
+          {@link android.hardware.camera2.CameraCharacteristics#SENSOR_INFO_ACTIVE_ARRAY_SIZE}
+          for the
+          {@link android.hardware.camera2.CameraExtensionCharacteristics#EXTENSION_EYES_FREE_VIDEOGRAPHY}
+          extension in
+          {@link android.hardware.camera2.CameraMetadata#EFV_STABILIZATION_MODE_LOCKED} mode.
+          </description>
+          <range>The list of target coordinates will define a region within the bounds of the
+          {@link android.hardware.camera2.CameraCharacteristics#SENSOR_INFO_ACTIVE_ARRAY_SIZE}
+          </range>
+          <details>
+          A list of android.graphics.PointF that define the coordinates of the target region
+          relative to the
+          {@link android.hardware.camera2.CameraCharacteristics#SENSOR_INFO_ACTIVE_ARRAY_SIZE}.
+          The array represents the target region coordinates as: top-left, top-right, bottom-left,
+          bottom-right.
+          </details>
+        </entry>
+        <clone entry="android.efv.paddingZoomFactor" kind="controls">
+        </clone>
+        <clone entry="android.efv.stabilizationMode" kind="controls">
+        </clone>
+        <clone entry="android.efv.autoZoom" kind="controls">
+        </clone>
+        <clone entry="android.efv.rotateViewport" kind="controls">
+        </clone>
+        <clone entry="android.efv.translateViewport" kind="controls">
+        </clone>
+        <clone entry="android.efv.maxPaddingZoomFactor" kind="controls">
+        </clone>
+      </dynamic>
     </section>
   </namespace>
 </metadata>

@@ -27,6 +27,53 @@
 namespace android {
 
 /**
+ * PowerLogBase logs power at a given frame resolution.
+ *
+ * Generally this class is not directly accessed, rather it is embedded
+ * as a helper object in PowerLog, which uses multiple PowerLogBase objects to
+ * log at different frame resolutions.
+ *
+ * Call framesToProcess() to determine the maximum number of frames to process.
+ * Then call processEnergy() with a frame count, and the energy, and the time.
+ */
+class PowerLogBase {
+public:
+    PowerLogBase(uint32_t sampleRate,
+            uint32_t channelCount,
+            audio_format_t format,
+            size_t entries,
+            size_t framesPerEntry);
+
+    size_t framesToProcess(size_t frames) const {
+        const size_t required = mFramesPerEntry - mCurrentFrames;
+        return std::min(required, frames);
+    }
+
+    void processEnergy(size_t frames, float energy, int64_t nowNs);
+
+    std::string dumpToString(const char* prefix = "", size_t lines = 0, int64_t limitNs = 0,
+            bool logPlot = true) const;
+
+private:
+    void flushEntry();
+
+    const uint32_t mSampleRate;   // audio data sample rate
+    const uint32_t mChannelCount; // audio data channel count
+    const audio_format_t mFormat; // audio data format
+    const size_t mFramesPerEntry; // number of audio frames per entry
+    const int64_t mEntryTimeNs;   // the entry time span in ns
+    const int64_t mMaxTimeSlipNs; // maximum time incoming audio can
+                                  // be offset by before we flush current entry
+
+    int64_t mCurrentTime = 0;     // time of first frame in buffer
+    float mCurrentEnergy = 0.f;   // local energy accumulation
+    size_t mCurrentFrames = 0;    // number of frames in the energy
+    size_t mIdx = 0;              // next usable index in mEntries
+    size_t mConsecutiveZeroes = 1; // current run of consecutive zero entries
+    std::vector<std::pair<int64_t /* real time ns */, float /* energy */>> mEntries;
+};
+
+/**
  * PowerLog captures the audio data power (measured in dBFS) over time.
  *
  * For the purposes of power evaluation, the audio data is divided into "bins",
@@ -40,6 +87,7 @@ namespace android {
  */
 class PowerLog {
 public:
+
     /**
      * \brief Creates a PowerLog object.
      *
@@ -50,12 +98,30 @@ public:
      *                          else the constructor will abort.
      * \param entries           total number of energy entries "bins" to use.
      * \param framesPerEntry    total number of audio frames used in each entry.
+     * \param levels            number of resolution levels for the log (typically 1 or 2).
      */
     PowerLog(uint32_t sampleRate,
             uint32_t channelCount,
             audio_format_t format,
             size_t entries,
-            size_t framesPerEntry);
+            size_t framesPerEntry,
+            size_t levels = 2)
+            : mChannelCount(channelCount)
+            , mFormat(format)
+            , mSampleRate(sampleRate)
+            , mBase{[=]() {
+                // create a vector of PowerLogBases starting from the
+                // finest granularity to the largest granularity.
+                std::vector<std::shared_ptr<PowerLogBase>> v(levels);
+                size_t scale = 1;
+                for (size_t i = 0; i < levels; ++i) {
+                    v[i] = std::make_shared<PowerLogBase>(
+                            sampleRate, channelCount, format,
+                            entries / levels, framesPerEntry * scale);
+                    scale *= 20;  // each level's entry is 20x the temporal width of the prior.
+                }
+                return v;
+            }()}  {}
 
     /**
      * \brief Adds new audio data to the power log.
@@ -92,18 +158,12 @@ public:
     status_t dump(int fd, const char *prefix = "", size_t lines = 0, int64_t limitNs = 0,
             bool logPlot = true) const;
 
-private:
-    mutable std::mutex mLock;     // monitor mutex
-    int64_t mCurrentTime;         // time of first frame in buffer
-    float mCurrentEnergy;         // local energy accumulation
-    size_t mCurrentFrames;        // number of frames in the energy
-    size_t mIdx;                  // next usable index in mEntries
-    size_t mConsecutiveZeroes;    // current run of consecutive zero entries
-    const uint32_t mSampleRate;   // audio data sample rate
     const uint32_t mChannelCount; // audio data channel count
     const audio_format_t mFormat; // audio data format
-    const size_t mFramesPerEntry; // number of audio frames per entry
-    std::vector<std::pair<int64_t /* real time ns */, float /* energy */>> mEntries;
+    const uint32_t mSampleRate;
+
+    mutable std::mutex mMutex;    // monitor mutex governs access through mBase.
+    const std::vector<std::shared_ptr<PowerLogBase>> mBase;
 };
 
 } // namespace android

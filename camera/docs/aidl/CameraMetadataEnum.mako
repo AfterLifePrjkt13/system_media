@@ -63,6 +63,7 @@ package android.hardware.camera.metadata;
 /**
  * ${_entry.name} enumeration values
  * @see ${_entry.name | csym}
+ * See system/media/camera/docs/metadata_definitions.xml for details.
  */
 @VintfStability
 @Backing(type="${annotated_enum_type(_entry)}")

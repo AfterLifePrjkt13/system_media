@@ -114,6 +114,7 @@ protected:
     uint32_t  mRateMultiplier;   // SPDIF output data burst rate = msampleRate * mRateMultiplier
     size_t    mFrameSizeBytes;   // encoded frame size
     int       mDataType;         // as defined in IEC61937-2 paragraph 4.2
+    int       mErrorFlag;        // as defined in IEC61937-2 paragraph 4.1
     int       mDataTypeInfo;     // as defined in IEC61937-2 paragraph 4.1
 
     /**

@@ -41,6 +41,8 @@ import os
 from bs4 import BeautifulSoup
 from bs4 import NavigableString
 
+from datetime import datetime
+
 from io import StringIO
 
 from mako.template import Template
@@ -321,7 +323,8 @@ class MetadataParserXml:
 
     return d
 
-  def render(self, template, output_name=None, enum=None, copyright_year="2022"):
+  def render(self, template, output_name=None, enum=None,
+             copyright_year=None):
     """
     Render the metadata model using a Mako template as the view.
 
@@ -339,7 +342,13 @@ class MetadataParserXml:
     buf = StringIO()
     metadata_helpers._context_buf = buf
     metadata_helpers._enum = enum
-    metadata_helpers._copyright_year = copyright_year
+
+    copyright_year = copyright_year \
+                        if copyright_year is not None \
+                        else str(datetime.now().year)
+    metadata_helpers._copyright_year = \
+        metadata_helpers.infer_copyright_year_from_source(output_name,
+                                                          copyright_year)
 
     helpers = [(i, getattr(metadata_helpers, i))
                 for i in dir(metadata_helpers) if not i.startswith('_')]
@@ -373,7 +382,7 @@ if __name__ == "__main__":
   file_name = sys.argv[1]
   template_name = sys.argv[2]
   output_name = sys.argv[3] if len(sys.argv) > 3 else None
-  copyright_year = sys.argv[4] if len(sys.argv) > 4 else "2022"
+  copyright_year = sys.argv[4] if len(sys.argv) > 4 else str(datetime.now().year)
 
   parser = MetadataParserXml.create_from_file(file_name)
   parser.render(template_name, output_name, None, copyright_year)

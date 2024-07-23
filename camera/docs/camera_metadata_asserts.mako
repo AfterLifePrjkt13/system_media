@@ -49,7 +49,7 @@ def aidl_enum_name(entry):
 #include <aidl/android/hardware/camera/metadata/CameraMetadataSection.h>
 #include <aidl/android/hardware/camera/metadata/CameraMetadataSectionStart.h>
 #include <aidl/android/hardware/camera/metadata/CameraMetadataTag.h>
-% for sec in find_all_sections(metadata):
+% for sec in find_all_sections_filtered(metadata, ('extension')):
   % for entry in remove_hal_non_visible(find_unique_entries(sec)):
     % if entry.enum:
 #include <aidl/android/hardware/camera/metadata/${aidl_enum_name(entry)}.h>
@@ -59,27 +59,27 @@ def aidl_enum_name(entry):
 
 #include <system/camera_metadata_tags.h>
 
-% for sec in find_all_sections(metadata):
+% for sec in find_all_sections_filtered(metadata, ('extension')):
 static_assert(static_cast<int>(${path_name(sec) | csym})
         == static_cast<int>(${aidl_camera_metadata_section(csym(path_name(sec)))}));
 % endfor
 static_assert(static_cast<int>(VENDOR_SECTION)
         == static_cast<int>(${aidl_camera_metadata_section("VENDOR_SECTION")}));
 
-% for sec in find_all_sections(metadata):
+% for sec in find_all_sections_filtered(metadata, ('extension')):
 static_assert(static_cast<int>(${path_name(sec) + '.start' | csym})
         == static_cast<int>(${aidl_camera_metadata_section_start(csym(path_name(sec) + '.start'))}));
 % endfor
 static_assert(static_cast<int>(VENDOR_SECTION_START)
         == static_cast<int>(${aidl_camera_metadata_section_start("VENDOR_SECTION_START")}));
 
-% for sec in find_all_sections(metadata):
+% for sec in find_all_sections_filtered(metadata, ('extension')):
   % for idx,entry in enumerate(remove_hal_non_visible(find_unique_entries(sec))):
 static_assert(static_cast<int>(${csym(entry.name)})
         == static_cast<int>(${aidl_camera_metadata_tag(csym(entry.name))}));
   % endfor
 % endfor
-% for sec in find_all_sections(metadata):
+% for sec in find_all_sections_filtered(metadata, ('extension')):
   % for entry in remove_hal_non_visible(find_unique_entries(sec)):
     % if entry.enum:
 

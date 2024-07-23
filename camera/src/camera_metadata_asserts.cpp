@@ -82,6 +82,7 @@
 #include <aidl/android/hardware/camera/metadata/SensorTestPatternMode.h>
 #include <aidl/android/hardware/camera/metadata/SensorPixelMode.h>
 #include <aidl/android/hardware/camera/metadata/SensorRawBinningFactorUsed.h>
+#include <aidl/android/hardware/camera/metadata/SensorReadoutTimestamp.h>
 #include <aidl/android/hardware/camera/metadata/SensorInfoColorFilterArrangement.h>
 #include <aidl/android/hardware/camera/metadata/SensorInfoTimestampSource.h>
 #include <aidl/android/hardware/camera/metadata/SensorInfoLensShadingApplied.h>
@@ -677,6 +678,8 @@ static_assert(static_cast<int>(ANDROID_SENSOR_PIXEL_MODE)
         == static_cast<int>(::aidl::android::hardware::camera::metadata::CameraMetadataTag::ANDROID_SENSOR_PIXEL_MODE));
 static_assert(static_cast<int>(ANDROID_SENSOR_RAW_BINNING_FACTOR_USED)
         == static_cast<int>(::aidl::android::hardware::camera::metadata::CameraMetadataTag::ANDROID_SENSOR_RAW_BINNING_FACTOR_USED));
+static_assert(static_cast<int>(ANDROID_SENSOR_READOUT_TIMESTAMP)
+        == static_cast<int>(::aidl::android::hardware::camera::metadata::CameraMetadataTag::ANDROID_SENSOR_READOUT_TIMESTAMP));
 static_assert(static_cast<int>(ANDROID_SENSOR_INFO_ACTIVE_ARRAY_SIZE)
         == static_cast<int>(::aidl::android::hardware::camera::metadata::CameraMetadataTag::ANDROID_SENSOR_INFO_ACTIVE_ARRAY_SIZE));
 static_assert(static_cast<int>(ANDROID_SENSOR_INFO_SENSITIVITY_RANGE)
@@ -1518,6 +1521,11 @@ static_assert(static_cast<int32_t>(ANDROID_SENSOR_RAW_BINNING_FACTOR_USED_TRUE)
         == static_cast<int32_t>(::aidl::android::hardware::camera::metadata::SensorRawBinningFactorUsed::ANDROID_SENSOR_RAW_BINNING_FACTOR_USED_TRUE));
 static_assert(static_cast<int32_t>(ANDROID_SENSOR_RAW_BINNING_FACTOR_USED_FALSE)
         == static_cast<int32_t>(::aidl::android::hardware::camera::metadata::SensorRawBinningFactorUsed::ANDROID_SENSOR_RAW_BINNING_FACTOR_USED_FALSE));
+
+static_assert(static_cast<int32_t>(ANDROID_SENSOR_READOUT_TIMESTAMP_NOT_SUPPORTED)
+        == static_cast<int32_t>(::aidl::android::hardware::camera::metadata::SensorReadoutTimestamp::ANDROID_SENSOR_READOUT_TIMESTAMP_NOT_SUPPORTED));
+static_assert(static_cast<int32_t>(ANDROID_SENSOR_READOUT_TIMESTAMP_HARDWARE)
+        == static_cast<int32_t>(::aidl::android::hardware::camera::metadata::SensorReadoutTimestamp::ANDROID_SENSOR_READOUT_TIMESTAMP_HARDWARE));
 
 static_assert(static_cast<int32_t>(ANDROID_SENSOR_INFO_COLOR_FILTER_ARRANGEMENT_RGGB)
         == static_cast<int32_t>(::aidl::android::hardware::camera::metadata::SensorInfoColorFilterArrangement::ANDROID_SENSOR_INFO_COLOR_FILTER_ARRANGEMENT_RGGB));

@@ -1481,6 +1481,58 @@
         </li>
       </ul> <!-- toc_section -->
     </li>
+    <li>
+      <span class="toc_section_header"><a href="#section_efv">efv</a></span>
+      <ul class="toc_section">
+        <li>
+          <span class="toc_kind_header">static</span>
+          <ul class="toc_section">
+            <li
+            ><a href="#static_android.efv.paddingZoomFactorRange">android.efv.paddingZoomFactorRange</a></li>
+          </ul>
+        </li>
+        <li>
+          <span class="toc_kind_header">controls</span>
+          <ul class="toc_section">
+            <li
+            ><a href="#controls_android.efv.paddingZoomFactor">android.efv.paddingZoomFactor</a></li>
+            <li
+            ><a href="#controls_android.efv.autoZoom">android.efv.autoZoom</a></li>
+            <li
+            ><a href="#controls_android.efv.maxPaddingZoomFactor">android.efv.maxPaddingZoomFactor</a></li>
+            <li
+            ><a href="#controls_android.efv.stabilizationMode">android.efv.stabilizationMode</a></li>
+            <li
+            ><a href="#controls_android.efv.translateViewport">android.efv.translateViewport</a></li>
+            <li
+            ><a href="#controls_android.efv.rotateViewport">android.efv.rotateViewport</a></li>
+          </ul>
+        </li>
+        <li>
+          <span class="toc_kind_header">dynamic</span>
+          <ul class="toc_section">
+            <li
+            ><a href="#dynamic_android.efv.paddingRegion">android.efv.paddingRegion</a></li>
+            <li
+            ><a href="#dynamic_android.efv.autoZoomPaddingRegion">android.efv.autoZoomPaddingRegion</a></li>
+            <li
+            ><a href="#dynamic_android.efv.targetCoordinates">android.efv.targetCoordinates</a></li>
+            <li
+            ><a href="#dynamic_android.efv.paddingZoomFactor">android.efv.paddingZoomFactor</a></li>
+            <li
+            ><a href="#dynamic_android.efv.stabilizationMode">android.efv.stabilizationMode</a></li>
+            <li
+            ><a href="#dynamic_android.efv.autoZoom">android.efv.autoZoom</a></li>
+            <li
+            ><a href="#dynamic_android.efv.rotateViewport">android.efv.rotateViewport</a></li>
+            <li
+            ><a href="#dynamic_android.efv.translateViewport">android.efv.translateViewport</a></li>
+            <li
+            ><a href="#dynamic_android.efv.maxPaddingZoomFactor">android.efv.maxPaddingZoomFactor</a></li>
+          </ul>
+        </li>
+      </ul> <!-- toc_section -->
+    </li>
   </ul>
 
 
@@ -26616,12 +26668,14 @@ corresponds to a centered crop of 1/<wbr/>4th of the full field of view RAW stre
 </ul>
 <p>should be interpreted in the effective after raw crop field-of-view coordinate system.<wbr/>
 In this coordinate system,<wbr/>
-{preCorrectionActiveArraySize.<wbr/>left,<wbr/> preCorrectionActiveArraySize.<wbr/>top} corresponds to the
+{<a href="#static_android.sensor.info.preCorrectionActiveArraySize">android.<wbr/>sensor.<wbr/>info.<wbr/>pre<wbr/>Correction<wbr/>Active<wbr/>Array<wbr/>Size</a>.<wbr/>left,<wbr/>
+ <a href="#static_android.sensor.info.preCorrectionActiveArraySize">android.<wbr/>sensor.<wbr/>info.<wbr/>pre<wbr/>Correction<wbr/>Active<wbr/>Array<wbr/>Size</a>.<wbr/>top} corresponds to the
 the top left corner of the cropped RAW frame and
-{preCorrectionActiveArraySize.<wbr/>right,<wbr/> preCorrectionActiveArraySize.<wbr/>bottom} corresponds to
+{<a href="#static_android.sensor.info.preCorrectionActiveArraySize">android.<wbr/>sensor.<wbr/>info.<wbr/>pre<wbr/>Correction<wbr/>Active<wbr/>Array<wbr/>Size</a>.<wbr/>right,<wbr/>
+ <a href="#static_android.sensor.info.preCorrectionActiveArraySize">android.<wbr/>sensor.<wbr/>info.<wbr/>pre<wbr/>Correction<wbr/>Active<wbr/>Array<wbr/>Size</a>.<wbr/>bottom} corresponds to
 the bottom right corner.<wbr/> Client applications must use the values of the keys
 in the CaptureResult metadata if present.<wbr/></p>
-<p>Crop regions (android.<wbr/>scaler.<wbr/>Crop<wbr/>Region),<wbr/> AE/<wbr/>AWB/<wbr/>AF regions and face coordinates still
+<p>Crop regions <a href="#controls_android.scaler.cropRegion">android.<wbr/>scaler.<wbr/>crop<wbr/>Region</a>,<wbr/> AE/<wbr/>AWB/<wbr/>AF regions and face coordinates still
 use the <a href="#static_android.sensor.info.activeArraySize">android.<wbr/>sensor.<wbr/>info.<wbr/>active<wbr/>Array<wbr/>Size</a> coordinate system as usual.<wbr/></p>
             </td>
           </tr>
@@ -29784,7 +29838,7 @@ the camera</p>
             <td class="entry_type">
                 <span class="entry_type_name entry_type_name_enum">byte</span>
 
-              <span class="entry_type_visibility"> [fwk_java_public]</span>
+              <span class="entry_type_visibility"> [java_public]</span>
 
 
               <span class="entry_type_hwlevel">[legacy] </span>
@@ -29858,7 +29912,10 @@ generally constant over time for the same set of output resolutions and capture 
           </tr>
           <tr class="entry_cont">
             <td class="entry_details" colspan="6">
-              <p>This property is populated by the camera framework and must not be set at the HAL layer.<wbr/></p>
+              <p>This property may be set by HAL layers that implement the AIDL interface.<wbr/> If not set
+camera framework will implicitly set it to HARDWARE for all AIDL HALs.<wbr/> Camera framework
+will force set this to NOT_<wbr/>SUPPORTED for all HIDL HALs,<wbr/> regerdless of whether the HAL
+provided a value or not.<wbr/></p>
             </td>
           </tr>
 
@@ -36961,7 +37018,7 @@ to check if the combinations of below features are supported.<wbr/></p>
 </code></pre>
 <ul>
 <li>VIDEO_<wbr/>STABILIZATION_<wbr/>MODES: {OFF,<wbr/> PREVIEW}</li>
-<li>AE_<wbr/>TARGET_<wbr/>FPS_<wbr/>RANGE: {{<em>,<wbr/> 30},<wbr/> {</em>,<wbr/> 60}}</li>
+<li>AE_<wbr/>TARGET_<wbr/>FPS_<wbr/>RANGE: { {<em>,<wbr/> 30},<wbr/> {</em>,<wbr/> 60} }</li>
 <li>DYNAMIC_<wbr/>RANGE_<wbr/>PROFILE: {STANDARD,<wbr/> HLG10}</li>
 </ul>
             </td>
@@ -41347,6 +41404,1097 @@ output format/<wbr/>size combination for Jpeg/<wbr/>R streams for CaptureRequest
           <tr class="entry_cont">
             <td class="entry_details" colspan="6">
               <p>Refer to <a href="#static_android.jpegr.availableJpegRStallDurations">android.<wbr/>jpegr.<wbr/>available<wbr/>Jpeg<wbr/>RStall<wbr/>Durations</a> for details.<wbr/></p>
+            </td>
+          </tr>
+
+
+          <tr class="entry_spacer"><td class="entry_spacer" colspan="7"></td></tr>
+           <!-- end of entry -->
+        
+        
+
+      <!-- end of kind -->
+      </tbody>
+
+  <!-- end of section -->
+  <tr><td colspan="7" id="section_efv" class="section">efv</td></tr>
+
+
+      <tr><td colspan="7" class="kind">static</td></tr>
+
+      <thead class="entries_header">
+        <tr>
+          <th class="th_name">Property Name</th>
+          <th class="th_type">Type</th>
+          <th class="th_description">Description</th>
+          <th class="th_units">Units</th>
+          <th class="th_range">Range</th>
+          <th class="th_hal_version">Initial HIDL HAL version</th>
+          <th class="th_tags">Tags</th>
+        </tr>
+      </thead>
+
+      <tbody>
+
+        
+
+        
+
+        
+
+        
+
+                
+          <tr class="entry" id="static_android.efv.paddingZoomFactorRange">
+            <td class="entry_name
+             " rowspan="3">
+              android.<wbr/>efv.<wbr/>padding<wbr/>Zoom<wbr/>Factor<wbr/>Range
+            </td>
+            <td class="entry_type">
+                <span class="entry_type_name">float</span>
+                <span class="entry_type_container">x</span>
+
+                <span class="entry_type_array">
+                  2
+                </span>
+              <span class="entry_type_visibility"> [extension as rangeFloat]</span>
+
+
+
+
+
+
+            </td> <!-- entry_type -->
+
+            <td class="entry_description">
+              <p>Minimum and maximum padding zoom factors supported by this camera device for
+<a href="#controls_android.efv.paddingZoomFactor">android.<wbr/>efv.<wbr/>padding<wbr/>Zoom<wbr/>Factor</a> used for the
+<a href="https://developer.android.com/reference/android/hardware/camera2/CameraExtensionCharacteristics.html#EXTENSION_EYES_FREE_VIDEOGRAPHY">Camera<wbr/>Extension<wbr/>Characteristics#EXTENSION_<wbr/>EYES_<wbr/>FREE_<wbr/>VIDEOGRAPHY</a>
+extension.<wbr/></p>
+            </td>
+
+            <td class="entry_units">
+              A pair of padding zoom factors in floating-points:
+          (minPaddingZoomFactor,<wbr/> maxPaddingZoomFactor)
+            </td>
+
+            <td class="entry_range">
+              <p>1.<wbr/>0 &lt; minPaddingZoomFactor &lt;= maxPaddingZoomFactor</p>
+            </td>
+
+            <td class="entry_hal_version">
+              <p>3.<wbr/>9</p>
+            </td>
+
+            <td class="entry_tags">
+            </td>
+
+          </tr>
+          <tr class="entries_header">
+            <th class="th_details" colspan="6">Details</th>
+          </tr>
+          <tr class="entry_cont">
+            <td class="entry_details" colspan="6">
+              <p>The minimum and maximum padding zoom factors supported by the device for
+<a href="#controls_android.efv.paddingZoomFactor">android.<wbr/>efv.<wbr/>padding<wbr/>Zoom<wbr/>Factor</a> used as part of the
+<a href="https://developer.android.com/reference/android/hardware/camera2/CameraExtensionCharacteristics.html#EXTENSION_EYES_FREE_VIDEOGRAPHY">Camera<wbr/>Extension<wbr/>Characteristics#EXTENSION_<wbr/>EYES_<wbr/>FREE_<wbr/>VIDEOGRAPHY</a>
+extension feature.<wbr/> This extension specific camera characteristic can be queried using
+<a href="https://developer.android.com/reference/android/hardware/camera2/CameraExtensionCharacteristics.html#get">CameraExtensionCharacteristics#get</a>.<wbr/></p>
+            </td>
+          </tr>
+
+
+          <tr class="entry_spacer"><td class="entry_spacer" colspan="7"></td></tr>
+           <!-- end of entry -->
+        
+        
+
+      <!-- end of kind -->
+      </tbody>
+      <tr><td colspan="7" class="kind">controls</td></tr>
+
+      <thead class="entries_header">
+        <tr>
+          <th class="th_name">Property Name</th>
+          <th class="th_type">Type</th>
+          <th class="th_description">Description</th>
+          <th class="th_units">Units</th>
+          <th class="th_range">Range</th>
+          <th class="th_hal_version">Initial HIDL HAL version</th>
+          <th class="th_tags">Tags</th>
+        </tr>
+      </thead>
+
+      <tbody>
+
+        
+
+        
+
+        
+
+        
+
+                
+          <tr class="entry" id="controls_android.efv.paddingZoomFactor">
+            <td class="entry_name
+             " rowspan="3">
+              android.<wbr/>efv.<wbr/>padding<wbr/>Zoom<wbr/>Factor
+            </td>
+            <td class="entry_type">
+                <span class="entry_type_name">float</span>
+
+              <span class="entry_type_visibility"> [extension]</span>
+
+
+
+
+
+
+            </td> <!-- entry_type -->
+
+            <td class="entry_description">
+              <p>Used to apply an additional digital zoom factor for the
+<a href="https://developer.android.com/reference/android/hardware/camera2/CameraExtensionCharacteristics.html#EXTENSION_EYES_FREE_VIDEOGRAPHY">Camera<wbr/>Extension<wbr/>Characteristics#EXTENSION_<wbr/>EYES_<wbr/>FREE_<wbr/>VIDEOGRAPHY</a>
+extension in <a href="https://developer.android.com/reference/android/hardware/camera2/CameraMetadata.html#EFV_STABILIZATION_MODE_LOCKED">Camera<wbr/>Metadata#EFV_<wbr/>STABILIZATION_<wbr/>MODE_<wbr/>LOCKED</a> mode.<wbr/></p>
+            </td>
+
+            <td class="entry_units">
+            </td>
+
+            <td class="entry_range">
+              <p><a href="#static_android.efv.paddingZoomFactorRange">android.<wbr/>efv.<wbr/>padding<wbr/>Zoom<wbr/>Factor<wbr/>Range</a></p>
+            </td>
+
+            <td class="entry_hal_version">
+              <p>3.<wbr/>9</p>
+            </td>
+
+            <td class="entry_tags">
+            </td>
+
+          </tr>
+          <tr class="entries_header">
+            <th class="th_details" colspan="6">Details</th>
+          </tr>
+          <tr class="entry_cont">
+            <td class="entry_details" colspan="6">
+              <p>For the <a href="https://developer.android.com/reference/android/hardware/camera2/CameraExtensionCharacteristics.html#EXTENSION_EYES_FREE_VIDEOGRAPHY">Camera<wbr/>Extension<wbr/>Characteristics#EXTENSION_<wbr/>EYES_<wbr/>FREE_<wbr/>VIDEOGRAPHY</a>
+feature,<wbr/> an additional zoom factor is applied on top of the existing <a href="#controls_android.control.zoomRatio">android.<wbr/>control.<wbr/>zoom<wbr/>Ratio</a>.<wbr/>
+This additional zoom factor serves as a buffer to provide more flexibility for the
+<a href="https://developer.android.com/reference/android/hardware/camera2/CameraMetadata.html#EFV_STABILIZATION_MODE_LOCKED">Camera<wbr/>Metadata#EFV_<wbr/>STABILIZATION_<wbr/>MODE_<wbr/>LOCKED</a>
+mode.<wbr/> If <a href="#controls_android.efv.paddingZoomFactor">android.<wbr/>efv.<wbr/>padding<wbr/>Zoom<wbr/>Factor</a> is not set,<wbr/> the default will be used.<wbr/>
+The effectiveness of the stabilization may be influenced by the amount of padding zoom
+applied.<wbr/> A higher padding zoom factor can stabilize the target region more effectively
+with greater flexibility but may potentially impact image quality.<wbr/> Conversely,<wbr/> a lower
+padding zoom factor may be used to prioritize preserving image quality,<wbr/> albeit with less
+leeway in stabilizing the target region.<wbr/> It is recommended to set the
+<a href="#controls_android.efv.paddingZoomFactor">android.<wbr/>efv.<wbr/>padding<wbr/>Zoom<wbr/>Factor</a> to at least 1.<wbr/>5.<wbr/></p>
+<p>If <a href="#controls_android.efv.autoZoom">android.<wbr/>efv.<wbr/>auto<wbr/>Zoom</a> is enabled,<wbr/> the requested <a href="#controls_android.efv.paddingZoomFactor">android.<wbr/>efv.<wbr/>padding<wbr/>Zoom<wbr/>Factor</a> will be overridden.<wbr/>
+<a href="#controls_android.efv.maxPaddingZoomFactor">android.<wbr/>efv.<wbr/>max<wbr/>Padding<wbr/>Zoom<wbr/>Factor</a> can be checked for more details on controlling the 
+padding zoom factor during <a href="#controls_android.efv.autoZoom">android.<wbr/>efv.<wbr/>auto<wbr/>Zoom</a>.<wbr/></p>
+            </td>
+          </tr>
+
+
+          <tr class="entry_spacer"><td class="entry_spacer" colspan="7"></td></tr>
+           <!-- end of entry -->
+        
+                
+          <tr class="entry" id="controls_android.efv.autoZoom">
+            <td class="entry_name
+             " rowspan="3">
+              android.<wbr/>efv.<wbr/>auto<wbr/>Zoom
+            </td>
+            <td class="entry_type">
+                <span class="entry_type_name entry_type_name_enum">byte</span>
+
+              <span class="entry_type_visibility"> [extension as boolean]</span>
+
+
+
+
+
+                <ul class="entry_type_enum">
+                  <li>
+                    <span class="entry_type_enum_name">TRUE (v3.9)</span>
+                  </li>
+                  <li>
+                    <span class="entry_type_enum_name">FALSE (v3.9)</span>
+                  </li>
+                </ul>
+
+            </td> <!-- entry_type -->
+
+            <td class="entry_description">
+              <p>Used to enable or disable auto zoom for the
+<a href="https://developer.android.com/reference/android/hardware/camera2/CameraExtensionCharacteristics.html#EXTENSION_EYES_FREE_VIDEOGRAPHY">Camera<wbr/>Extension<wbr/>Characteristics#EXTENSION_<wbr/>EYES_<wbr/>FREE_<wbr/>VIDEOGRAPHY</a>
+extension in <a href="https://developer.android.com/reference/android/hardware/camera2/CameraMetadata.html#EFV_STABILIZATION_MODE_LOCKED">Camera<wbr/>Metadata#EFV_<wbr/>STABILIZATION_<wbr/>MODE_<wbr/>LOCKED</a> mode.<wbr/></p>
+            </td>
+
+            <td class="entry_units">
+            </td>
+
+            <td class="entry_range">
+            </td>
+
+            <td class="entry_hal_version">
+              <p>3.<wbr/>9</p>
+            </td>
+
+            <td class="entry_tags">
+            </td>
+
+          </tr>
+          <tr class="entries_header">
+            <th class="th_details" colspan="6">Details</th>
+          </tr>
+          <tr class="entry_cont">
+            <td class="entry_details" colspan="6">
+              <p>Turn on auto zoom to let the
+<a href="https://developer.android.com/reference/android/hardware/camera2/CameraExtensionCharacteristics.html#EXTENSION_EYES_FREE_VIDEOGRAPHY">Camera<wbr/>Extension<wbr/>Characteristics#EXTENSION_<wbr/>EYES_<wbr/>FREE_<wbr/>VIDEOGRAPHY</a>
+feature decide at any given point a combination of
+<a href="#controls_android.control.zoomRatio">android.<wbr/>control.<wbr/>zoom<wbr/>Ratio</a> and <a href="#controls_android.efv.paddingZoomFactor">android.<wbr/>efv.<wbr/>padding<wbr/>Zoom<wbr/>Factor</a>
+to keep the target region in view and stabilized.<wbr/> The combination chosen by the
+<a href="https://developer.android.com/reference/android/hardware/camera2/CameraExtensionCharacteristics.html#EXTENSION_EYES_FREE_VIDEOGRAPHY">Camera<wbr/>Extension<wbr/>Characteristics#EXTENSION_<wbr/>EYES_<wbr/>FREE_<wbr/>VIDEOGRAPHY</a>
+will equal the requested <a href="#controls_android.control.zoomRatio">android.<wbr/>control.<wbr/>zoom<wbr/>Ratio</a> multiplied with the requested
+<a href="#controls_android.efv.paddingZoomFactor">android.<wbr/>efv.<wbr/>padding<wbr/>Zoom<wbr/>Factor</a>.<wbr/> A limit can be set on the padding zoom if wanting
+to control image quality further using <a href="#controls_android.efv.maxPaddingZoomFactor">android.<wbr/>efv.<wbr/>max<wbr/>Padding<wbr/>Zoom<wbr/>Factor</a>.<wbr/></p>
+            </td>
+          </tr>
+
+
+          <tr class="entry_spacer"><td class="entry_spacer" colspan="7"></td></tr>
+           <!-- end of entry -->
+        
+                
+          <tr class="entry" id="controls_android.efv.maxPaddingZoomFactor">
+            <td class="entry_name
+             " rowspan="3">
+              android.<wbr/>efv.<wbr/>max<wbr/>Padding<wbr/>Zoom<wbr/>Factor
+            </td>
+            <td class="entry_type">
+                <span class="entry_type_name">float</span>
+
+              <span class="entry_type_visibility"> [extension]</span>
+
+
+
+
+
+
+            </td> <!-- entry_type -->
+
+            <td class="entry_description">
+              <p>Used to limit the <a href="#controls_android.efv.paddingZoomFactor">android.<wbr/>efv.<wbr/>padding<wbr/>Zoom<wbr/>Factor</a> if
+<a href="#controls_android.efv.autoZoom">android.<wbr/>efv.<wbr/>auto<wbr/>Zoom</a> is enabled for the
+<a href="https://developer.android.com/reference/android/hardware/camera2/CameraExtensionCharacteristics.html#EXTENSION_EYES_FREE_VIDEOGRAPHY">Camera<wbr/>Extension<wbr/>Characteristics#EXTENSION_<wbr/>EYES_<wbr/>FREE_<wbr/>VIDEOGRAPHY</a>
+extension in <a href="https://developer.android.com/reference/android/hardware/camera2/CameraMetadata.html#EFV_STABILIZATION_MODE_LOCKED">Camera<wbr/>Metadata#EFV_<wbr/>STABILIZATION_<wbr/>MODE_<wbr/>LOCKED</a> mode.<wbr/></p>
+            </td>
+
+            <td class="entry_units">
+            </td>
+
+            <td class="entry_range">
+              <p>The range of <a href="#static_android.efv.paddingZoomFactorRange">android.<wbr/>efv.<wbr/>padding<wbr/>Zoom<wbr/>Factor<wbr/>Range</a>.<wbr/> Use a value greater than or equal to
+the <a href="#controls_android.efv.paddingZoomFactor">android.<wbr/>efv.<wbr/>padding<wbr/>Zoom<wbr/>Factor</a> to effectively utilize this key.<wbr/></p>
+            </td>
+
+            <td class="entry_hal_version">
+              <p>3.<wbr/>9</p>
+            </td>
+
+            <td class="entry_tags">
+            </td>
+
+          </tr>
+          <tr class="entries_header">
+            <th class="th_details" colspan="6">Details</th>
+          </tr>
+          <tr class="entry_cont">
+            <td class="entry_details" colspan="6">
+              <p>If <a href="#controls_android.efv.autoZoom">android.<wbr/>efv.<wbr/>auto<wbr/>Zoom</a> is enabled,<wbr/> this key can be used to set a limit
+on the <a href="#controls_android.efv.paddingZoomFactor">android.<wbr/>efv.<wbr/>padding<wbr/>Zoom<wbr/>Factor</a> chosen by the
+<a href="https://developer.android.com/reference/android/hardware/camera2/CameraExtensionCharacteristics.html#EXTENSION_EYES_FREE_VIDEOGRAPHY">Camera<wbr/>Extension<wbr/>Characteristics#EXTENSION_<wbr/>EYES_<wbr/>FREE_<wbr/>VIDEOGRAPHY</a>
+extension in <a href="https://developer.android.com/reference/android/hardware/camera2/CameraMetadata.html#EFV_STABILIZATION_MODE_LOCKED">Camera<wbr/>Metadata#EFV_<wbr/>STABILIZATION_<wbr/>MODE_<wbr/>LOCKED</a> mode
+to control image quality.<wbr/></p>
+            </td>
+          </tr>
+
+
+          <tr class="entry_spacer"><td class="entry_spacer" colspan="7"></td></tr>
+           <!-- end of entry -->
+        
+                
+          <tr class="entry" id="controls_android.efv.stabilizationMode">
+            <td class="entry_name
+             " rowspan="3">
+              android.<wbr/>efv.<wbr/>stabilization<wbr/>Mode
+            </td>
+            <td class="entry_type">
+                <span class="entry_type_name entry_type_name_enum">int32</span>
+
+              <span class="entry_type_visibility"> [extension]</span>
+
+
+
+
+
+                <ul class="entry_type_enum">
+                  <li>
+                    <span class="entry_type_enum_name">OFF (v3.9)</span>
+                    <span class="entry_type_enum_notes"><p>No stabilization.<wbr/></p></span>
+                  </li>
+                  <li>
+                    <span class="entry_type_enum_name">GIMBAL (v3.9)</span>
+                    <span class="entry_type_enum_notes"><p>Gimbal stabilization mode.<wbr/></p></span>
+                  </li>
+                  <li>
+                    <span class="entry_type_enum_name">LOCKED (v3.9)</span>
+                    <span class="entry_type_enum_notes"><p>Locked stabilization mode which uses the
+<a href="https://developer.android.com/reference/android/hardware/camera2/CameraExtensionCharacteristics.html#EXTENSION_EYES_FREE_VIDEOGRAPHY">Camera<wbr/>Extension<wbr/>Characteristics#EXTENSION_<wbr/>EYES_<wbr/>FREE_<wbr/>VIDEOGRAPHY</a>
+stabilization to directionally steady the target region.<wbr/></p></span>
+                  </li>
+                </ul>
+
+            </td> <!-- entry_type -->
+
+            <td class="entry_description">
+              <p>Set the stabilization mode for the
+<a href="https://developer.android.com/reference/android/hardware/camera2/CameraExtensionCharacteristics.html#EXTENSION_EYES_FREE_VIDEOGRAPHY">Camera<wbr/>Extension<wbr/>Characteristics#EXTENSION_<wbr/>EYES_<wbr/>FREE_<wbr/>VIDEOGRAPHY</a>
+extension</p>
+            </td>
+
+            <td class="entry_units">
+            </td>
+
+            <td class="entry_range">
+            </td>
+
+            <td class="entry_hal_version">
+              <p>3.<wbr/>9</p>
+            </td>
+
+            <td class="entry_tags">
+            </td>
+
+          </tr>
+          <tr class="entries_header">
+            <th class="th_details" colspan="6">Details</th>
+          </tr>
+          <tr class="entry_cont">
+            <td class="entry_details" colspan="6">
+              <p>The desired stabilization mode.<wbr/> Gimbal stabilization mode provides simple,<wbr/> non-locked
+video stabilization.<wbr/> Locked mode uses the
+<a href="https://developer.android.com/reference/android/hardware/camera2/CameraExtensionCharacteristics.html#EXTENSION_EYES_FREE_VIDEOGRAPHY">Camera<wbr/>Extension<wbr/>Characteristics#EXTENSION_<wbr/>EYES_<wbr/>FREE_<wbr/>VIDEOGRAPHY</a>
+stabilization feature to fixate on the current region,<wbr/> utilizing it as the target area for
+stabilization.<wbr/></p>
+            </td>
+          </tr>
+
+
+          <tr class="entry_spacer"><td class="entry_spacer" colspan="7"></td></tr>
+           <!-- end of entry -->
+        
+                
+          <tr class="entry" id="controls_android.efv.translateViewport">
+            <td class="entry_name
+             " rowspan="3">
+              android.<wbr/>efv.<wbr/>translate<wbr/>Viewport
+            </td>
+            <td class="entry_type">
+                <span class="entry_type_name">int32</span>
+
+              <span class="entry_type_visibility"> [extension as pairIntegerInteger]</span>
+
+
+
+
+
+
+            </td> <!-- entry_type -->
+
+            <td class="entry_description">
+              <p>Used to update the target region for the
+<a href="https://developer.android.com/reference/android/hardware/camera2/CameraExtensionCharacteristics.html#EXTENSION_EYES_FREE_VIDEOGRAPHY">Camera<wbr/>Extension<wbr/>Characteristics#EXTENSION_<wbr/>EYES_<wbr/>FREE_<wbr/>VIDEOGRAPHY</a>
+extension in <a href="https://developer.android.com/reference/android/hardware/camera2/CameraMetadata.html#EFV_STABILIZATION_MODE_LOCKED">Camera<wbr/>Metadata#EFV_<wbr/>STABILIZATION_<wbr/>MODE_<wbr/>LOCKED</a> mode.<wbr/></p>
+            </td>
+
+            <td class="entry_units">
+            </td>
+
+            <td class="entry_range">
+              <p>android.<wbr/>util.<wbr/>Pair<integer,integer> represents the
+<horizontal,vertical> shift.<wbr/> The range for the horizontal shift is
+[-max(<a href="#dynamic_android.efv.paddingRegion">android.<wbr/>efv.<wbr/>padding<wbr/>Region</a>-left),<wbr/> max(<a href="#dynamic_android.efv.paddingRegion">android.<wbr/>efv.<wbr/>padding<wbr/>Region</a>-right)].<wbr/>
+The range for the vertical shift is
+[-max(<a href="#dynamic_android.efv.paddingRegion">android.<wbr/>efv.<wbr/>padding<wbr/>Region</a>-top),<wbr/> max(<a href="#dynamic_android.efv.paddingRegion">android.<wbr/>efv.<wbr/>padding<wbr/>Region</a>-bottom)]</horizontal,vertical></integer,integer></p>
+            </td>
+
+            <td class="entry_hal_version">
+              <p>3.<wbr/>9</p>
+            </td>
+
+            <td class="entry_tags">
+            </td>
+
+          </tr>
+          <tr class="entries_header">
+            <th class="th_details" colspan="6">Details</th>
+          </tr>
+          <tr class="entry_cont">
+            <td class="entry_details" colspan="6">
+              <p>A android.<wbr/>util.<wbr/>Pair<integer,integer> that represents the desired
+<horizontal,vertical> shift of the current locked view (or target region) in
+pixels.<wbr/> Negative values indicate left and upward shifts,<wbr/> while positive values indicate
+right and downward shifts in the active array coordinate system.<wbr/></horizontal,vertical></integer,integer></p>
+            </td>
+          </tr>
+
+
+          <tr class="entry_spacer"><td class="entry_spacer" colspan="7"></td></tr>
+           <!-- end of entry -->
+        
+                
+          <tr class="entry" id="controls_android.efv.rotateViewport">
+            <td class="entry_name
+             " rowspan="3">
+              android.<wbr/>efv.<wbr/>rotate<wbr/>Viewport
+            </td>
+            <td class="entry_type">
+                <span class="entry_type_name">float</span>
+
+              <span class="entry_type_visibility"> [extension]</span>
+
+
+
+
+
+
+            </td> <!-- entry_type -->
+
+            <td class="entry_description">
+              <p>Representing the desired clockwise rotation
+of the target region in degrees for the
+<a href="https://developer.android.com/reference/android/hardware/camera2/CameraExtensionCharacteristics.html#EXTENSION_EYES_FREE_VIDEOGRAPHY">Camera<wbr/>Extension<wbr/>Characteristics#EXTENSION_<wbr/>EYES_<wbr/>FREE_<wbr/>VIDEOGRAPHY</a>
+extension in <a href="https://developer.android.com/reference/android/hardware/camera2/CameraMetadata.html#EFV_STABILIZATION_MODE_LOCKED">Camera<wbr/>Metadata#EFV_<wbr/>STABILIZATION_<wbr/>MODE_<wbr/>LOCKED</a> mode.<wbr/></p>
+            </td>
+
+            <td class="entry_units">
+            </td>
+
+            <td class="entry_range">
+              <p>0 to 360</p>
+            </td>
+
+            <td class="entry_hal_version">
+              <p>3.<wbr/>9</p>
+            </td>
+
+            <td class="entry_tags">
+            </td>
+
+          </tr>
+          <tr class="entries_header">
+            <th class="th_details" colspan="6">Details</th>
+          </tr>
+          <tr class="entry_cont">
+            <td class="entry_details" colspan="6">
+              <p>Value representing the desired clockwise rotation of the target
+region in degrees.<wbr/></p>
+            </td>
+          </tr>
+
+
+          <tr class="entry_spacer"><td class="entry_spacer" colspan="7"></td></tr>
+           <!-- end of entry -->
+        
+        
+
+      <!-- end of kind -->
+      </tbody>
+      <tr><td colspan="7" class="kind">dynamic</td></tr>
+
+      <thead class="entries_header">
+        <tr>
+          <th class="th_name">Property Name</th>
+          <th class="th_type">Type</th>
+          <th class="th_description">Description</th>
+          <th class="th_units">Units</th>
+          <th class="th_range">Range</th>
+          <th class="th_hal_version">Initial HIDL HAL version</th>
+          <th class="th_tags">Tags</th>
+        </tr>
+      </thead>
+
+      <tbody>
+
+        
+
+        
+
+        
+
+        
+
+                
+          <tr class="entry" id="dynamic_android.efv.paddingRegion">
+            <td class="entry_name
+             " rowspan="3">
+              android.<wbr/>efv.<wbr/>padding<wbr/>Region
+            </td>
+            <td class="entry_type">
+                <span class="entry_type_name">int32</span>
+                <span class="entry_type_container">x</span>
+
+                <span class="entry_type_array">
+                  4
+                </span>
+              <span class="entry_type_visibility"> [extension]</span>
+
+
+
+
+
+
+            </td> <!-- entry_type -->
+
+            <td class="entry_description">
+              <p>The padding region for the
+<a href="https://developer.android.com/reference/android/hardware/camera2/CameraExtensionCharacteristics.html#EXTENSION_EYES_FREE_VIDEOGRAPHY">Camera<wbr/>Extension<wbr/>Characteristics#EXTENSION_<wbr/>EYES_<wbr/>FREE_<wbr/>VIDEOGRAPHY</a>
+extension in <a href="https://developer.android.com/reference/android/hardware/camera2/CameraMetadata.html#EFV_STABILIZATION_MODE_LOCKED">Camera<wbr/>Metadata#EFV_<wbr/>STABILIZATION_<wbr/>MODE_<wbr/>LOCKED</a> mode.<wbr/></p>
+            </td>
+
+            <td class="entry_units">
+            </td>
+
+            <td class="entry_range">
+              <p>The padding is the number of remaining pixels of padding in each direction.<wbr/>
+The pixels reference the active array coordinate system.<wbr/> Negative values indicate the target
+region is out of bounds.<wbr/> The value for this key may be null for when the stabilization mode is
+in <a href="https://developer.android.com/reference/android/hardware/camera2/CameraMetadata.html#EFV_STABILIZATION_MODE_OFF">Camera<wbr/>Metadata#EFV_<wbr/>STABILIZATION_<wbr/>MODE_<wbr/>OFF</a>
+or <a href="https://developer.android.com/reference/android/hardware/camera2/CameraMetadata.html#EFV_STABILIZATION_MODE_GIMBAL">Camera<wbr/>Metadata#EFV_<wbr/>STABILIZATION_<wbr/>MODE_<wbr/>GIMBAL</a> mode.<wbr/></p>
+            </td>
+
+            <td class="entry_hal_version">
+              <p>3.<wbr/>9</p>
+            </td>
+
+            <td class="entry_tags">
+            </td>
+
+          </tr>
+          <tr class="entries_header">
+            <th class="th_details" colspan="6">Details</th>
+          </tr>
+          <tr class="entry_cont">
+            <td class="entry_details" colspan="6">
+              <p>An array [left,<wbr/> top,<wbr/> right,<wbr/> bottom] of the padding in pixels remaining on all four sides
+before the target region starts to go out of bounds.<wbr/></p>
+<p>The padding region denotes the area surrounding the stabilized target region within which
+the camera can be moved while maintaining the target region in view.<wbr/> As the camera moves,<wbr/>
+the padding region adjusts to represent the proximity of the target region to the
+boundary,<wbr/> which is the point at which the target region will start to go out of bounds.<wbr/></p>
+            </td>
+          </tr>
+
+
+          <tr class="entry_spacer"><td class="entry_spacer" colspan="7"></td></tr>
+           <!-- end of entry -->
+        
+                
+          <tr class="entry" id="dynamic_android.efv.autoZoomPaddingRegion">
+            <td class="entry_name
+             " rowspan="3">
+              android.<wbr/>efv.<wbr/>auto<wbr/>Zoom<wbr/>Padding<wbr/>Region
+            </td>
+            <td class="entry_type">
+                <span class="entry_type_name">int32</span>
+                <span class="entry_type_container">x</span>
+
+                <span class="entry_type_array">
+                  4
+                </span>
+              <span class="entry_type_visibility"> [extension]</span>
+
+
+
+
+
+
+            </td> <!-- entry_type -->
+
+            <td class="entry_description">
+              <p>The padding region when <a href="#controls_android.efv.autoZoom">android.<wbr/>efv.<wbr/>auto<wbr/>Zoom</a> is enabled for the
+<a href="https://developer.android.com/reference/android/hardware/camera2/CameraExtensionCharacteristics.html#EXTENSION_EYES_FREE_VIDEOGRAPHY">Camera<wbr/>Extension<wbr/>Characteristics#EXTENSION_<wbr/>EYES_<wbr/>FREE_<wbr/>VIDEOGRAPHY</a>
+extension in <a href="https://developer.android.com/reference/android/hardware/camera2/CameraMetadata.html#EFV_STABILIZATION_MODE_LOCKED">Camera<wbr/>Metadata#EFV_<wbr/>STABILIZATION_<wbr/>MODE_<wbr/>LOCKED</a> mode.<wbr/></p>
+            </td>
+
+            <td class="entry_units">
+            </td>
+
+            <td class="entry_range">
+              <p>The padding is the number of remaining pixels of padding in each direction
+when <a href="#controls_android.efv.autoZoom">android.<wbr/>efv.<wbr/>auto<wbr/>Zoom</a> is enabled.<wbr/> Negative values indicate the target region is out of bounds.<wbr/>
+The value for this key may be null for when the <a href="#controls_android.efv.autoZoom">android.<wbr/>efv.<wbr/>auto<wbr/>Zoom</a> is not enabled.<wbr/></p>
+            </td>
+
+            <td class="entry_hal_version">
+              <p>3.<wbr/>9</p>
+            </td>
+
+            <td class="entry_tags">
+            </td>
+
+          </tr>
+          <tr class="entries_header">
+            <th class="th_details" colspan="6">Details</th>
+          </tr>
+          <tr class="entry_cont">
+            <td class="entry_details" colspan="6">
+              <p>An array [left,<wbr/> top,<wbr/> right,<wbr/> bottom] of the padding in pixels remaining on all four sides
+before the target region starts to go out of bounds.<wbr/></p>
+<p>This may differ from <a href="#dynamic_android.efv.paddingRegion">android.<wbr/>efv.<wbr/>padding<wbr/>Region</a> as the field of view can change
+during <a href="#controls_android.efv.autoZoom">android.<wbr/>efv.<wbr/>auto<wbr/>Zoom</a>,<wbr/> altering the boundary region and thus updating the padding between the
+target region and the boundary.<wbr/></p>
+            </td>
+          </tr>
+
+
+          <tr class="entry_spacer"><td class="entry_spacer" colspan="7"></td></tr>
+           <!-- end of entry -->
+        
+                
+          <tr class="entry" id="dynamic_android.efv.targetCoordinates">
+            <td class="entry_name
+             " rowspan="3">
+              android.<wbr/>efv.<wbr/>target<wbr/>Coordinates
+            </td>
+            <td class="entry_type">
+                <span class="entry_type_name">float</span>
+                <span class="entry_type_container">x</span>
+
+                <span class="entry_type_array">
+                  4 x n
+                </span>
+              <span class="entry_type_visibility"> [extension as pointF]</span>
+
+
+
+
+
+
+            </td> <!-- entry_type -->
+
+            <td class="entry_description">
+              <p>List of coordinates representing the target region relative to the
+<a href="https://developer.android.com/reference/android/hardware/camera2/CameraCharacteristics.html#SENSOR_INFO_ACTIVE_ARRAY_SIZE">Camera<wbr/>Characteristics#SENSOR_<wbr/>INFO_<wbr/>ACTIVE_<wbr/>ARRAY_<wbr/>SIZE</a>
+for the
+<a href="https://developer.android.com/reference/android/hardware/camera2/CameraExtensionCharacteristics.html#EXTENSION_EYES_FREE_VIDEOGRAPHY">Camera<wbr/>Extension<wbr/>Characteristics#EXTENSION_<wbr/>EYES_<wbr/>FREE_<wbr/>VIDEOGRAPHY</a>
+extension in
+<a href="https://developer.android.com/reference/android/hardware/camera2/CameraMetadata.html#EFV_STABILIZATION_MODE_LOCKED">Camera<wbr/>Metadata#EFV_<wbr/>STABILIZATION_<wbr/>MODE_<wbr/>LOCKED</a> mode.<wbr/></p>
+            </td>
+
+            <td class="entry_units">
+            </td>
+
+            <td class="entry_range">
+              <p>The list of target coordinates will define a region within the bounds of the
+<a href="https://developer.android.com/reference/android/hardware/camera2/CameraCharacteristics.html#SENSOR_INFO_ACTIVE_ARRAY_SIZE">Camera<wbr/>Characteristics#SENSOR_<wbr/>INFO_<wbr/>ACTIVE_<wbr/>ARRAY_<wbr/>SIZE</a></p>
+            </td>
+
+            <td class="entry_hal_version">
+              <p>3.<wbr/>9</p>
+            </td>
+
+            <td class="entry_tags">
+            </td>
+
+          </tr>
+          <tr class="entries_header">
+            <th class="th_details" colspan="6">Details</th>
+          </tr>
+          <tr class="entry_cont">
+            <td class="entry_details" colspan="6">
+              <p>A list of android.<wbr/>graphics.<wbr/>Point<wbr/>F that define the coordinates of the target region
+relative to the
+<a href="https://developer.android.com/reference/android/hardware/camera2/CameraCharacteristics.html#SENSOR_INFO_ACTIVE_ARRAY_SIZE">Camera<wbr/>Characteristics#SENSOR_<wbr/>INFO_<wbr/>ACTIVE_<wbr/>ARRAY_<wbr/>SIZE</a>.<wbr/>
+The array represents the target region coordinates as: top-left,<wbr/> top-right,<wbr/> bottom-left,<wbr/>
+bottom-right.<wbr/></p>
+            </td>
+          </tr>
+
+
+          <tr class="entry_spacer"><td class="entry_spacer" colspan="7"></td></tr>
+           <!-- end of entry -->
+        
+                
+          <tr class="entry" id="dynamic_android.efv.paddingZoomFactor">
+            <td class="entry_name
+             " rowspan="3">
+              android.<wbr/>efv.<wbr/>padding<wbr/>Zoom<wbr/>Factor
+            </td>
+            <td class="entry_type">
+                <span class="entry_type_name">float</span>
+
+              <span class="entry_type_visibility"> [extension]</span>
+
+
+
+
+
+
+            </td> <!-- entry_type -->
+
+            <td class="entry_description">
+              <p>Used to apply an additional digital zoom factor for the
+<a href="https://developer.android.com/reference/android/hardware/camera2/CameraExtensionCharacteristics.html#EXTENSION_EYES_FREE_VIDEOGRAPHY">Camera<wbr/>Extension<wbr/>Characteristics#EXTENSION_<wbr/>EYES_<wbr/>FREE_<wbr/>VIDEOGRAPHY</a>
+extension in <a href="https://developer.android.com/reference/android/hardware/camera2/CameraMetadata.html#EFV_STABILIZATION_MODE_LOCKED">Camera<wbr/>Metadata#EFV_<wbr/>STABILIZATION_<wbr/>MODE_<wbr/>LOCKED</a> mode.<wbr/></p>
+            </td>
+
+            <td class="entry_units">
+            </td>
+
+            <td class="entry_range">
+              <p><a href="#static_android.efv.paddingZoomFactorRange">android.<wbr/>efv.<wbr/>padding<wbr/>Zoom<wbr/>Factor<wbr/>Range</a></p>
+            </td>
+
+            <td class="entry_hal_version">
+              <p>3.<wbr/>9</p>
+            </td>
+
+            <td class="entry_tags">
+            </td>
+
+          </tr>
+          <tr class="entries_header">
+            <th class="th_details" colspan="6">Details</th>
+          </tr>
+          <tr class="entry_cont">
+            <td class="entry_details" colspan="6">
+              <p>For the <a href="https://developer.android.com/reference/android/hardware/camera2/CameraExtensionCharacteristics.html#EXTENSION_EYES_FREE_VIDEOGRAPHY">Camera<wbr/>Extension<wbr/>Characteristics#EXTENSION_<wbr/>EYES_<wbr/>FREE_<wbr/>VIDEOGRAPHY</a>
+feature,<wbr/> an additional zoom factor is applied on top of the existing <a href="#controls_android.control.zoomRatio">android.<wbr/>control.<wbr/>zoom<wbr/>Ratio</a>.<wbr/>
+This additional zoom factor serves as a buffer to provide more flexibility for the
+<a href="https://developer.android.com/reference/android/hardware/camera2/CameraMetadata.html#EFV_STABILIZATION_MODE_LOCKED">Camera<wbr/>Metadata#EFV_<wbr/>STABILIZATION_<wbr/>MODE_<wbr/>LOCKED</a>
+mode.<wbr/> If <a href="#controls_android.efv.paddingZoomFactor">android.<wbr/>efv.<wbr/>padding<wbr/>Zoom<wbr/>Factor</a> is not set,<wbr/> the default will be used.<wbr/>
+The effectiveness of the stabilization may be influenced by the amount of padding zoom
+applied.<wbr/> A higher padding zoom factor can stabilize the target region more effectively
+with greater flexibility but may potentially impact image quality.<wbr/> Conversely,<wbr/> a lower
+padding zoom factor may be used to prioritize preserving image quality,<wbr/> albeit with less
+leeway in stabilizing the target region.<wbr/> It is recommended to set the
+<a href="#controls_android.efv.paddingZoomFactor">android.<wbr/>efv.<wbr/>padding<wbr/>Zoom<wbr/>Factor</a> to at least 1.<wbr/>5.<wbr/></p>
+<p>If <a href="#controls_android.efv.autoZoom">android.<wbr/>efv.<wbr/>auto<wbr/>Zoom</a> is enabled,<wbr/> the requested <a href="#controls_android.efv.paddingZoomFactor">android.<wbr/>efv.<wbr/>padding<wbr/>Zoom<wbr/>Factor</a> will be overridden.<wbr/>
+<a href="#controls_android.efv.maxPaddingZoomFactor">android.<wbr/>efv.<wbr/>max<wbr/>Padding<wbr/>Zoom<wbr/>Factor</a> can be checked for more details on controlling the 
+padding zoom factor during <a href="#controls_android.efv.autoZoom">android.<wbr/>efv.<wbr/>auto<wbr/>Zoom</a>.<wbr/></p>
+            </td>
+          </tr>
+
+
+          <tr class="entry_spacer"><td class="entry_spacer" colspan="7"></td></tr>
+           <!-- end of entry -->
+        
+                
+          <tr class="entry" id="dynamic_android.efv.stabilizationMode">
+            <td class="entry_name
+             " rowspan="3">
+              android.<wbr/>efv.<wbr/>stabilization<wbr/>Mode
+            </td>
+            <td class="entry_type">
+                <span class="entry_type_name entry_type_name_enum">int32</span>
+
+              <span class="entry_type_visibility"> [extension]</span>
+
+
+
+
+
+                <ul class="entry_type_enum">
+                  <li>
+                    <span class="entry_type_enum_name">OFF (v3.9)</span>
+                    <span class="entry_type_enum_notes"><p>No stabilization.<wbr/></p></span>
+                  </li>
+                  <li>
+                    <span class="entry_type_enum_name">GIMBAL (v3.9)</span>
+                    <span class="entry_type_enum_notes"><p>Gimbal stabilization mode.<wbr/></p></span>
+                  </li>
+                  <li>
+                    <span class="entry_type_enum_name">LOCKED (v3.9)</span>
+                    <span class="entry_type_enum_notes"><p>Locked stabilization mode which uses the
+<a href="https://developer.android.com/reference/android/hardware/camera2/CameraExtensionCharacteristics.html#EXTENSION_EYES_FREE_VIDEOGRAPHY">Camera<wbr/>Extension<wbr/>Characteristics#EXTENSION_<wbr/>EYES_<wbr/>FREE_<wbr/>VIDEOGRAPHY</a>
+stabilization to directionally steady the target region.<wbr/></p></span>
+                  </li>
+                </ul>
+
+            </td> <!-- entry_type -->
+
+            <td class="entry_description">
+              <p>Set the stabilization mode for the
+<a href="https://developer.android.com/reference/android/hardware/camera2/CameraExtensionCharacteristics.html#EXTENSION_EYES_FREE_VIDEOGRAPHY">Camera<wbr/>Extension<wbr/>Characteristics#EXTENSION_<wbr/>EYES_<wbr/>FREE_<wbr/>VIDEOGRAPHY</a>
+extension</p>
+            </td>
+
+            <td class="entry_units">
+            </td>
+
+            <td class="entry_range">
+            </td>
+
+            <td class="entry_hal_version">
+              <p>3.<wbr/>9</p>
+            </td>
+
+            <td class="entry_tags">
+            </td>
+
+          </tr>
+          <tr class="entries_header">
+            <th class="th_details" colspan="6">Details</th>
+          </tr>
+          <tr class="entry_cont">
+            <td class="entry_details" colspan="6">
+              <p>The desired stabilization mode.<wbr/> Gimbal stabilization mode provides simple,<wbr/> non-locked
+video stabilization.<wbr/> Locked mode uses the
+<a href="https://developer.android.com/reference/android/hardware/camera2/CameraExtensionCharacteristics.html#EXTENSION_EYES_FREE_VIDEOGRAPHY">Camera<wbr/>Extension<wbr/>Characteristics#EXTENSION_<wbr/>EYES_<wbr/>FREE_<wbr/>VIDEOGRAPHY</a>
+stabilization feature to fixate on the current region,<wbr/> utilizing it as the target area for
+stabilization.<wbr/></p>
+            </td>
+          </tr>
+
+
+          <tr class="entry_spacer"><td class="entry_spacer" colspan="7"></td></tr>
+           <!-- end of entry -->
+        
+                
+          <tr class="entry" id="dynamic_android.efv.autoZoom">
+            <td class="entry_name
+             " rowspan="3">
+              android.<wbr/>efv.<wbr/>auto<wbr/>Zoom
+            </td>
+            <td class="entry_type">
+                <span class="entry_type_name entry_type_name_enum">byte</span>
+
+              <span class="entry_type_visibility"> [extension as boolean]</span>
+
+
+
+
+
+                <ul class="entry_type_enum">
+                  <li>
+                    <span class="entry_type_enum_name">TRUE (v3.9)</span>
+                  </li>
+                  <li>
+                    <span class="entry_type_enum_name">FALSE (v3.9)</span>
+                  </li>
+                </ul>
+
+            </td> <!-- entry_type -->
+
+            <td class="entry_description">
+              <p>Used to enable or disable auto zoom for the
+<a href="https://developer.android.com/reference/android/hardware/camera2/CameraExtensionCharacteristics.html#EXTENSION_EYES_FREE_VIDEOGRAPHY">Camera<wbr/>Extension<wbr/>Characteristics#EXTENSION_<wbr/>EYES_<wbr/>FREE_<wbr/>VIDEOGRAPHY</a>
+extension in <a href="https://developer.android.com/reference/android/hardware/camera2/CameraMetadata.html#EFV_STABILIZATION_MODE_LOCKED">Camera<wbr/>Metadata#EFV_<wbr/>STABILIZATION_<wbr/>MODE_<wbr/>LOCKED</a> mode.<wbr/></p>
+            </td>
+
+            <td class="entry_units">
+            </td>
+
+            <td class="entry_range">
+            </td>
+
+            <td class="entry_hal_version">
+              <p>3.<wbr/>9</p>
+            </td>
+
+            <td class="entry_tags">
+            </td>
+
+          </tr>
+          <tr class="entries_header">
+            <th class="th_details" colspan="6">Details</th>
+          </tr>
+          <tr class="entry_cont">
+            <td class="entry_details" colspan="6">
+              <p>Turn on auto zoom to let the
+<a href="https://developer.android.com/reference/android/hardware/camera2/CameraExtensionCharacteristics.html#EXTENSION_EYES_FREE_VIDEOGRAPHY">Camera<wbr/>Extension<wbr/>Characteristics#EXTENSION_<wbr/>EYES_<wbr/>FREE_<wbr/>VIDEOGRAPHY</a>
+feature decide at any given point a combination of
+<a href="#controls_android.control.zoomRatio">android.<wbr/>control.<wbr/>zoom<wbr/>Ratio</a> and <a href="#controls_android.efv.paddingZoomFactor">android.<wbr/>efv.<wbr/>padding<wbr/>Zoom<wbr/>Factor</a>
+to keep the target region in view and stabilized.<wbr/> The combination chosen by the
+<a href="https://developer.android.com/reference/android/hardware/camera2/CameraExtensionCharacteristics.html#EXTENSION_EYES_FREE_VIDEOGRAPHY">Camera<wbr/>Extension<wbr/>Characteristics#EXTENSION_<wbr/>EYES_<wbr/>FREE_<wbr/>VIDEOGRAPHY</a>
+will equal the requested <a href="#controls_android.control.zoomRatio">android.<wbr/>control.<wbr/>zoom<wbr/>Ratio</a> multiplied with the requested
+<a href="#controls_android.efv.paddingZoomFactor">android.<wbr/>efv.<wbr/>padding<wbr/>Zoom<wbr/>Factor</a>.<wbr/> A limit can be set on the padding zoom if wanting
+to control image quality further using <a href="#controls_android.efv.maxPaddingZoomFactor">android.<wbr/>efv.<wbr/>max<wbr/>Padding<wbr/>Zoom<wbr/>Factor</a>.<wbr/></p>
+            </td>
+          </tr>
+
+
+          <tr class="entry_spacer"><td class="entry_spacer" colspan="7"></td></tr>
+           <!-- end of entry -->
+        
+                
+          <tr class="entry" id="dynamic_android.efv.rotateViewport">
+            <td class="entry_name
+             " rowspan="3">
+              android.<wbr/>efv.<wbr/>rotate<wbr/>Viewport
+            </td>
+            <td class="entry_type">
+                <span class="entry_type_name">float</span>
+
+              <span class="entry_type_visibility"> [extension]</span>
+
+
+
+
+
+
+            </td> <!-- entry_type -->
+
+            <td class="entry_description">
+              <p>Representing the desired clockwise rotation
+of the target region in degrees for the
+<a href="https://developer.android.com/reference/android/hardware/camera2/CameraExtensionCharacteristics.html#EXTENSION_EYES_FREE_VIDEOGRAPHY">Camera<wbr/>Extension<wbr/>Characteristics#EXTENSION_<wbr/>EYES_<wbr/>FREE_<wbr/>VIDEOGRAPHY</a>
+extension in <a href="https://developer.android.com/reference/android/hardware/camera2/CameraMetadata.html#EFV_STABILIZATION_MODE_LOCKED">Camera<wbr/>Metadata#EFV_<wbr/>STABILIZATION_<wbr/>MODE_<wbr/>LOCKED</a> mode.<wbr/></p>
+            </td>
+
+            <td class="entry_units">
+            </td>
+
+            <td class="entry_range">
+              <p>0 to 360</p>
+            </td>
+
+            <td class="entry_hal_version">
+              <p>3.<wbr/>9</p>
+            </td>
+
+            <td class="entry_tags">
+            </td>
+
+          </tr>
+          <tr class="entries_header">
+            <th class="th_details" colspan="6">Details</th>
+          </tr>
+          <tr class="entry_cont">
+            <td class="entry_details" colspan="6">
+              <p>Value representing the desired clockwise rotation of the target
+region in degrees.<wbr/></p>
+            </td>
+          </tr>
+
+
+          <tr class="entry_spacer"><td class="entry_spacer" colspan="7"></td></tr>
+           <!-- end of entry -->
+        
+                
+          <tr class="entry" id="dynamic_android.efv.translateViewport">
+            <td class="entry_name
+             " rowspan="3">
+              android.<wbr/>efv.<wbr/>translate<wbr/>Viewport
+            </td>
+            <td class="entry_type">
+                <span class="entry_type_name">int32</span>
+
+              <span class="entry_type_visibility"> [extension as pairIntegerInteger]</span>
+
+
+
+
+
+
+            </td> <!-- entry_type -->
+
+            <td class="entry_description">
+              <p>Used to update the target region for the
+<a href="https://developer.android.com/reference/android/hardware/camera2/CameraExtensionCharacteristics.html#EXTENSION_EYES_FREE_VIDEOGRAPHY">Camera<wbr/>Extension<wbr/>Characteristics#EXTENSION_<wbr/>EYES_<wbr/>FREE_<wbr/>VIDEOGRAPHY</a>
+extension in <a href="https://developer.android.com/reference/android/hardware/camera2/CameraMetadata.html#EFV_STABILIZATION_MODE_LOCKED">Camera<wbr/>Metadata#EFV_<wbr/>STABILIZATION_<wbr/>MODE_<wbr/>LOCKED</a> mode.<wbr/></p>
+            </td>
+
+            <td class="entry_units">
+            </td>
+
+            <td class="entry_range">
+              <p>android.<wbr/>util.<wbr/>Pair<integer,integer> represents the
+<horizontal,vertical> shift.<wbr/> The range for the horizontal shift is
+[-max(<a href="#dynamic_android.efv.paddingRegion">android.<wbr/>efv.<wbr/>padding<wbr/>Region</a>-left),<wbr/> max(<a href="#dynamic_android.efv.paddingRegion">android.<wbr/>efv.<wbr/>padding<wbr/>Region</a>-right)].<wbr/>
+The range for the vertical shift is
+[-max(<a href="#dynamic_android.efv.paddingRegion">android.<wbr/>efv.<wbr/>padding<wbr/>Region</a>-top),<wbr/> max(<a href="#dynamic_android.efv.paddingRegion">android.<wbr/>efv.<wbr/>padding<wbr/>Region</a>-bottom)]</horizontal,vertical></integer,integer></p>
+            </td>
+
+            <td class="entry_hal_version">
+              <p>3.<wbr/>9</p>
+            </td>
+
+            <td class="entry_tags">
+            </td>
+
+          </tr>
+          <tr class="entries_header">
+            <th class="th_details" colspan="6">Details</th>
+          </tr>
+          <tr class="entry_cont">
+            <td class="entry_details" colspan="6">
+              <p>A android.<wbr/>util.<wbr/>Pair<integer,integer> that represents the desired
+<horizontal,vertical> shift of the current locked view (or target region) in
+pixels.<wbr/> Negative values indicate left and upward shifts,<wbr/> while positive values indicate
+right and downward shifts in the active array coordinate system.<wbr/></horizontal,vertical></integer,integer></p>
+            </td>
+          </tr>
+
+
+          <tr class="entry_spacer"><td class="entry_spacer" colspan="7"></td></tr>
+           <!-- end of entry -->
+        
+                
+          <tr class="entry" id="dynamic_android.efv.maxPaddingZoomFactor">
+            <td class="entry_name
+             " rowspan="3">
+              android.<wbr/>efv.<wbr/>max<wbr/>Padding<wbr/>Zoom<wbr/>Factor
+            </td>
+            <td class="entry_type">
+                <span class="entry_type_name">float</span>
+
+              <span class="entry_type_visibility"> [extension]</span>
+
+
+
+
+
+
+            </td> <!-- entry_type -->
+
+            <td class="entry_description">
+              <p>Used to limit the <a href="#controls_android.efv.paddingZoomFactor">android.<wbr/>efv.<wbr/>padding<wbr/>Zoom<wbr/>Factor</a> if
+<a href="#controls_android.efv.autoZoom">android.<wbr/>efv.<wbr/>auto<wbr/>Zoom</a> is enabled for the
+<a href="https://developer.android.com/reference/android/hardware/camera2/CameraExtensionCharacteristics.html#EXTENSION_EYES_FREE_VIDEOGRAPHY">Camera<wbr/>Extension<wbr/>Characteristics#EXTENSION_<wbr/>EYES_<wbr/>FREE_<wbr/>VIDEOGRAPHY</a>
+extension in <a href="https://developer.android.com/reference/android/hardware/camera2/CameraMetadata.html#EFV_STABILIZATION_MODE_LOCKED">Camera<wbr/>Metadata#EFV_<wbr/>STABILIZATION_<wbr/>MODE_<wbr/>LOCKED</a> mode.<wbr/></p>
+            </td>
+
+            <td class="entry_units">
+            </td>
+
+            <td class="entry_range">
+              <p>The range of <a href="#static_android.efv.paddingZoomFactorRange">android.<wbr/>efv.<wbr/>padding<wbr/>Zoom<wbr/>Factor<wbr/>Range</a>.<wbr/> Use a value greater than or equal to
+the <a href="#controls_android.efv.paddingZoomFactor">android.<wbr/>efv.<wbr/>padding<wbr/>Zoom<wbr/>Factor</a> to effectively utilize this key.<wbr/></p>
+            </td>
+
+            <td class="entry_hal_version">
+              <p>3.<wbr/>9</p>
+            </td>
+
+            <td class="entry_tags">
+            </td>
+
+          </tr>
+          <tr class="entries_header">
+            <th class="th_details" colspan="6">Details</th>
+          </tr>
+          <tr class="entry_cont">
+            <td class="entry_details" colspan="6">
+              <p>If <a href="#controls_android.efv.autoZoom">android.<wbr/>efv.<wbr/>auto<wbr/>Zoom</a> is enabled,<wbr/> this key can be used to set a limit
+on the <a href="#controls_android.efv.paddingZoomFactor">android.<wbr/>efv.<wbr/>padding<wbr/>Zoom<wbr/>Factor</a> chosen by the
+<a href="https://developer.android.com/reference/android/hardware/camera2/CameraExtensionCharacteristics.html#EXTENSION_EYES_FREE_VIDEOGRAPHY">Camera<wbr/>Extension<wbr/>Characteristics#EXTENSION_<wbr/>EYES_<wbr/>FREE_<wbr/>VIDEOGRAPHY</a>
+extension in <a href="https://developer.android.com/reference/android/hardware/camera2/CameraMetadata.html#EFV_STABILIZATION_MODE_LOCKED">Camera<wbr/>Metadata#EFV_<wbr/>STABILIZATION_<wbr/>MODE_<wbr/>LOCKED</a> mode
+to control image quality.<wbr/></p>
             </td>
           </tr>
 

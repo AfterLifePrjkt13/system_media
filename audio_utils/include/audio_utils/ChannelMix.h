@@ -392,12 +392,16 @@ constexpr bool fillChannelMatrix(audio_channel_mask_t INPUT_CHANNEL_MASK,
                     break;
 
                 case AUDIO_CHANNEL_OUT_BACK_LEFT:
-                case AUDIO_CHANNEL_OUT_TOP_BACK_LEFT:
                     matrix[index][BL] = 1.f;
                     break;
+                case AUDIO_CHANNEL_OUT_TOP_BACK_LEFT:
+                    matrix[index][TBL] = 1.f;
+                    break;
                 case AUDIO_CHANNEL_OUT_BACK_RIGHT:
-                case AUDIO_CHANNEL_OUT_TOP_BACK_RIGHT:
                     matrix[index][BR] = 1.f;
+                    break;
+                case AUDIO_CHANNEL_OUT_TOP_BACK_RIGHT:
+                    matrix[index][TBR] = 1.f;
                     break;
 
                 case AUDIO_CHANNEL_OUT_SIDE_LEFT:
@@ -407,6 +411,121 @@ constexpr bool fillChannelMatrix(audio_channel_mask_t INPUT_CHANNEL_MASK,
                 case AUDIO_CHANNEL_OUT_SIDE_RIGHT:
                 case AUDIO_CHANNEL_OUT_TOP_SIDE_RIGHT:
                     matrix[index][SR] = 1.f;
+                    break;
+
+                case AUDIO_CHANNEL_OUT_TOP_BACK_CENTER:
+                    matrix[index][TBL] = matrix[index][TBR] = MINUS_3_DB_IN_FLOAT;
+                    break;
+
+                case AUDIO_CHANNEL_OUT_BACK_CENTER:
+                    matrix[index][BL] = matrix[index][BR] = MINUS_3_DB_IN_FLOAT;
+                    break;
+
+                case AUDIO_CHANNEL_OUT_TOP_CENTER:
+                    matrix[index][TFL] = matrix[index][TFR] = 0.5f;
+                    matrix[index][TBL] = matrix[index][TBR] = 0.5f;
+                    break;
+
+                case AUDIO_CHANNEL_OUT_LOW_FREQUENCY:
+                case AUDIO_CHANNEL_OUT_LOW_FREQUENCY_2:
+                    matrix[index][LFE] = 1.f;
+                    break;
+            }
+            tmp ^= lowestBit;
+        }
+        return true;
+    } else if constexpr (OUTPUT_CHANNEL_MASK == AUDIO_CHANNEL_OUT_9POINT1POINT6) {
+        //   FL  FR  FC  LFE  BL  BR  SL  SR  TFL  TFR  TBL  TBR  TSL  TSR  FWL  FWR
+        size_t index = 0;
+        constexpr float MINUS_3_DB_IN_FLOAT = M_SQRT1_2; // -3dB = 0.70710678
+        constexpr float MINUS_4_5_DB_IN_FLOAT = 0.5946035575f;
+
+        constexpr size_t FL = 0;
+        constexpr size_t FR = 1;
+        constexpr size_t FC = 2;
+        constexpr size_t LFE = 3;
+        constexpr size_t BL = 4;
+        constexpr size_t BR = 5;
+        constexpr size_t SL = 6;
+        constexpr size_t SR = 7;
+        constexpr size_t TFL = 8;
+        constexpr size_t TFR = 9;
+        constexpr size_t TBL = 10;
+        constexpr size_t TBR = 11;
+        constexpr size_t TSL = 12;
+        constexpr size_t TSR = 13;
+        constexpr size_t FWL = 14;
+        constexpr size_t FWR = 15;
+        for (unsigned tmp = INPUT_CHANNEL_MASK; tmp != 0; ++index) {
+            if (index >= M) return false;
+            const unsigned lowestBit = tmp & -(signed)tmp;
+            matrix[index][FL] = matrix[index][FR] = matrix[index][FC] = 0.f;
+            matrix[index][LFE] = matrix[index][BL] = matrix[index][BR] = 0.f;
+            switch (lowestBit) {
+                case AUDIO_CHANNEL_OUT_TOP_FRONT_LEFT:
+                    matrix[index][TFL] = 1.f;
+                    break;
+                case AUDIO_CHANNEL_OUT_TOP_FRONT_RIGHT:
+                    matrix[index][TFR] = 1.f;
+                    break;
+                case AUDIO_CHANNEL_OUT_TOP_FRONT_CENTER:
+                    matrix[index][TFL] = matrix[index][TFR] = MINUS_3_DB_IN_FLOAT;
+                    break;
+
+                case AUDIO_CHANNEL_OUT_FRONT_LEFT:
+                case AUDIO_CHANNEL_OUT_BOTTOM_FRONT_LEFT:
+                    matrix[index][FL] = 1.f;
+                    break;
+                case AUDIO_CHANNEL_OUT_FRONT_RIGHT:
+                case AUDIO_CHANNEL_OUT_BOTTOM_FRONT_RIGHT:
+                    matrix[index][FR] = 1.f;
+                    break;
+
+                case AUDIO_CHANNEL_OUT_FRONT_CENTER:
+                case AUDIO_CHANNEL_OUT_BOTTOM_FRONT_CENTER:
+                    matrix[index][FC] = 1.f;
+                    break;
+
+                case AUDIO_CHANNEL_OUT_FRONT_WIDE_LEFT:
+                    matrix[index][FWL] = 1.f;
+                    break;
+                case AUDIO_CHANNEL_OUT_FRONT_WIDE_RIGHT:
+                    matrix[index][FWR] = 1.f;
+                    break;
+
+                case AUDIO_CHANNEL_OUT_FRONT_LEFT_OF_CENTER:
+                    matrix[index][FL] = MINUS_4_5_DB_IN_FLOAT;
+                    matrix[index][FC] = MINUS_3_DB_IN_FLOAT;
+                    break;
+                case AUDIO_CHANNEL_OUT_FRONT_RIGHT_OF_CENTER:
+                    matrix[index][FR] = MINUS_4_5_DB_IN_FLOAT;
+                    matrix[index][FC] = MINUS_3_DB_IN_FLOAT;
+                    break;
+
+                case AUDIO_CHANNEL_OUT_BACK_LEFT:
+                    matrix[index][BL] = 1.f;
+                    break;
+                case AUDIO_CHANNEL_OUT_TOP_BACK_LEFT:
+                    matrix[index][TBL] = 1.f;
+                    break;
+                case AUDIO_CHANNEL_OUT_BACK_RIGHT:
+                    matrix[index][BR] = 1.f;
+                    break;
+                case AUDIO_CHANNEL_OUT_TOP_BACK_RIGHT:
+                    matrix[index][TBR] = 1.f;
+                    break;
+
+                case AUDIO_CHANNEL_OUT_SIDE_LEFT:
+                    matrix[index][SL] = 1.f;
+                    break;
+                case AUDIO_CHANNEL_OUT_TOP_SIDE_LEFT:
+                    matrix[index][TSL] = 1.f;
+                    break;
+                case AUDIO_CHANNEL_OUT_SIDE_RIGHT:
+                    matrix[index][SR] = 1.f;
+                    break;
+                case AUDIO_CHANNEL_OUT_TOP_SIDE_RIGHT:
+                    matrix[index][TSR] = 1.f;
                     break;
 
                 case AUDIO_CHANNEL_OUT_TOP_BACK_CENTER:
@@ -608,6 +727,9 @@ private:
                 case AUDIO_CHANNEL_OUT_7POINT1POINT4:
                      return sparseChannelMatrixMultiply<AUDIO_CHANNEL_OUT_7POINT1POINT4,
                             OUTPUT_CHANNEL_MASK, ACCUMULATE>(src, dst, frameCount);
+                case AUDIO_CHANNEL_OUT_9POINT1POINT6:
+                    return sparseChannelMatrixMultiply<AUDIO_CHANNEL_OUT_9POINT1POINT6,
+                            OUTPUT_CHANNEL_MASK, ACCUMULATE>(src, dst, frameCount);
                 case AUDIO_CHANNEL_OUT_22POINT2:
                      return sparseChannelMatrixMultiply<AUDIO_CHANNEL_OUT_22POINT2,
                             OUTPUT_CHANNEL_MASK, ACCUMULATE>(src, dst, frameCount);
@@ -615,7 +737,8 @@ private:
                     break; // handled below.
                 }
             } else if constexpr (OUTPUT_CHANNEL_MASK == AUDIO_CHANNEL_OUT_7POINT1
-                    || OUTPUT_CHANNEL_MASK == AUDIO_CHANNEL_OUT_7POINT1POINT4) {
+                    || OUTPUT_CHANNEL_MASK == AUDIO_CHANNEL_OUT_7POINT1POINT4
+                    || OUTPUT_CHANNEL_MASK == AUDIO_CHANNEL_OUT_9POINT1POINT6) {
                 switch (mInputChannelMask) {
                 case AUDIO_CHANNEL_OUT_STEREO:
                     return sparseChannelMatrixMultiply<AUDIO_CHANNEL_OUT_STEREO,
@@ -642,6 +765,9 @@ private:
                             OUTPUT_CHANNEL_MASK, ACCUMULATE>(src, dst, frameCount);
                 case AUDIO_CHANNEL_OUT_7POINT1POINT4:
                      return sparseChannelMatrixMultiply<AUDIO_CHANNEL_OUT_7POINT1POINT4,
+                            OUTPUT_CHANNEL_MASK, ACCUMULATE>(src, dst, frameCount);
+                case AUDIO_CHANNEL_OUT_9POINT1POINT6:
+                    return sparseChannelMatrixMultiply<AUDIO_CHANNEL_OUT_9POINT1POINT6,
                             OUTPUT_CHANNEL_MASK, ACCUMULATE>(src, dst, frameCount);
                 case AUDIO_CHANNEL_OUT_22POINT2:
                      return sparseChannelMatrixMultiply<AUDIO_CHANNEL_OUT_22POINT2,

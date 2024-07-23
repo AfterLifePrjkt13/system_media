@@ -28,6 +28,7 @@ import bs4
 bs4.builder.HTMLTreeBuilder.empty_element_tags.add("wbr")
 
 from collections import OrderedDict
+from os import path
 
 # Relative path from HTML file to the base directory used by <img> tags
 IMAGE_SRC_METADATA="images/camera2/metadata/"
@@ -66,6 +67,31 @@ def find_all_sections(root):
     These are known as "sections" in the generated C code.
   """
   return root.find_all(_is_sec_or_ins)
+
+def find_all_sections_filtered(root, visibility):
+  """
+  Find all descendants that are Section or InnerNamespace instances that do not
+  contain entries of the supplied visibility
+
+  Args:
+    root: a Metadata instance
+    visibilities: An iterable of visibilities to filter against
+
+  Returns:
+    A list of Section/InnerNamespace instances
+
+  Remarks:
+    These are known as "sections" in the generated C code.
+  """
+  sections = root.find_all(_is_sec_or_ins)
+
+  filtered_sections = []
+  for sec in sections:
+    if not any(filter_visibility(find_unique_entries(sec), visibility)):
+      filtered_sections.append(sec)
+
+  return filtered_sections
+
 
 def find_parent_section(entry):
   """
@@ -1363,7 +1389,7 @@ def filter_visibility(entries, visibilities):
 def remove_hal_non_visible(entries):
   """
   Filter the given entries by removing those that are not HAL visible:
-  synthetic, fwk_only, or fwk_java_public.
+  synthetic, fwk_only, extension, or fwk_java_public.
 
   Args:
     entries: An iterable of Entry nodes
@@ -1372,7 +1398,8 @@ def remove_hal_non_visible(entries):
     An iterable of Entry nodes
   """
   return (e for e in entries if not (e.synthetic or e.visibility == 'fwk_only'
-                                     or e.visibility == 'fwk_java_public'))
+                                     or e.visibility == 'fwk_java_public' or
+                                     e.visibility == 'extension'))
 
 """
   Return the vndk version for a given hal minor version. The major version is assumed to be 3
@@ -1561,6 +1588,36 @@ def wbr(text):
 
 def copyright_year():
   return _copyright_year
+
+def infer_copyright_year_from_source(src_file, default_copyright_year):
+  """
+  Opens src_file and tries to infer the copyright year from the file
+  if it exists. Returns default_copyright_year if src_file is None, doesn't
+  exist, or the copyright year cannot be parsed from the first 15 lines.
+
+  Assumption:
+    - Copyright text must be in the first 15 lines of the src_file.
+      This should almost always be true.
+  """
+  if src_file is None:
+    return default_copyright_year
+
+  if not path.isfile(src_file):
+    return default_copyright_year
+
+  copyright_pattern = r"^.*Copyright \([Cc]\) (20\d\d) The Android Open Source Project$"
+  num_max_lines = 15
+
+  with open(src_file, "r") as f:
+    for i, line in enumerate(f):
+      if i >= num_max_lines:
+        break
+
+      years = re.findall(copyright_pattern, line.strip())
+      if len(years) > 0:
+        return years[0]
+
+  return default_copyright_year
 
 def enum():
   return _enum

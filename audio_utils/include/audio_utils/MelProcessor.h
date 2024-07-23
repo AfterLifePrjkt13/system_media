@@ -60,7 +60,8 @@ public:
         virtual void onNewMelValues(const std::vector<float>& mels,
                                     size_t offset,
                                     size_t length,
-                                    audio_port_handle_t deviceId) const = 0;
+                                    audio_port_handle_t deviceId,
+                                    bool attenuated) const = 0;
 
         /**
          * Called when the momentary exposure exceeds the RS2 upper bound.

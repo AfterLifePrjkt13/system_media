@@ -27,10 +27,6 @@
 
 namespace android {
 
-// Burst Preamble defined in IEC61937-1
-const uint16_t SPDIFEncoder::kSPDIFSync1 = 0xF872; // Pa
-const uint16_t SPDIFEncoder::kSPDIFSync2 = 0x4E1F; // Pb
-
 static int32_t sEndianDetector = 1;
 #define isLittleEndian()  (*((uint8_t *)&sEndianDetector))
 
@@ -65,7 +61,7 @@ SPDIFEncoder::SPDIFEncoder(audio_format_t format)
         "SPDIFEncoder: invalid audio format = 0x%08X", format);
 
     mBurstBufferSizeBytes = sizeof(uint16_t)
-            * SPDIF_ENCODED_CHANNEL_COUNT
+            * kSpdifEncodedChannelCount
             * mFramer->getMaxSampleFramesPerSyncFrame();
 
     ALOGI("SPDIFEncoder: mBurstBufferSizeBytes = %zu, littleEndian = %d",
@@ -101,7 +97,7 @@ bool SPDIFEncoder::isFormatSupported(audio_format_t format)
 
 int SPDIFEncoder::getBytesPerOutputFrame()
 {
-    return SPDIF_ENCODED_CHANNEL_COUNT * sizeof(int16_t);
+    return kSpdifEncodedChannelCount * sizeof(int16_t);
 }
 
 bool SPDIFEncoder::wouldOverflowBuffer(size_t numBytes) const {
@@ -168,7 +164,7 @@ void SPDIFEncoder::sendZeroPad()
 {
     // Pad remainder of burst with zeros.
     size_t burstSize = mFramer->getSampleFramesPerSyncFrame() * sizeof(uint16_t)
-            * SPDIF_ENCODED_CHANNEL_COUNT;
+            * kSpdifEncodedChannelCount;
     if (mByteCursor > burstSize) {
         ALOGE("SPDIFEncoder: Burst buffer, contents too large!");
         clearBurstBuffer();
@@ -200,7 +196,16 @@ void SPDIFEncoder::flushBurstBuffer()
         mBurstBuffer[3] = mFramer->convertBytesToLengthCode(numBytes);
 
         sendZeroPad();
-        writeOutput(mBurstBuffer, mByteCursor);
+        size_t bytesWritten = 0;
+        while (mByteCursor > bytesWritten) {
+            ssize_t res = writeOutput(mBurstBuffer + bytesWritten, mByteCursor - bytesWritten);
+            if (res < 0) {
+                ALOGE("SPDIFEncoder::%s write error %zd", __func__, res);
+                break;
+            } else {
+                bytesWritten += res;
+            }
+        }
     }
     reset();
 }
@@ -224,8 +229,8 @@ void SPDIFEncoder::startDataBurst()
 
     mRateMultiplier = mFramer->getRateMultiplier();
 
-    preamble[0] = kSPDIFSync1;
-    preamble[1] = kSPDIFSync2;
+    preamble[0] = kSpdifSync1;
+    preamble[1] = kSpdifSync2;
     preamble[2] = burstInfo;
     preamble[3] = 0; // lengthCode - This will get set after the buffer is full.
     writeBurstBufferShorts(preamble, 4);

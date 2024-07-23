@@ -111,7 +111,7 @@ public:
      *   the current CSD value. Vector could be empty in case no new records
      *   contributed to CSD.
      */
-    std::vector<CsdRecord> aggregateAndAddNewMelRecord(const MelRecord& record);
+    virtual std::vector<CsdRecord> aggregateAndAddNewMelRecord(const MelRecord& record);
 
     /**
      * Reset the aggregator values. Discards all the previous cached values and

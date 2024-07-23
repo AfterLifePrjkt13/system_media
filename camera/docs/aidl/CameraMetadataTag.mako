@@ -55,7 +55,7 @@ import android.hardware.camera.metadata.CameraMetadataSectionStart;
 enum CameraMetadataTag {
 <% curIdx = 0 %>\
 <% gap = False %>\
-% for sec_idx,sec in enumerate(find_all_sections(metadata)):
+% for sec_idx,sec in enumerate(find_all_sections_filtered(metadata, ('extension'))):
   % for idx,entry in enumerate(remove_synthetic(find_unique_entries(sec))):
     % if entry.visibility in ('fwk_only', 'fwk_java_public'):
 <% gap = True %>\

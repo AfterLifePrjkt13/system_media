@@ -18,6 +18,8 @@
 #define LOG_TAG "audio_utils_PowerLog"
 #include <log/log.h>
 
+#include <audio_utils/PowerLog.h>
+
 #include <algorithm>
 #include <iomanip>
 #include <math.h>
@@ -29,89 +31,55 @@
 #include <audio_utils/clock.h>
 #include <audio_utils/LogPlot.h>
 #include <audio_utils/power.h>
-#include <audio_utils/PowerLog.h>
 
 namespace android {
 
-// TODO move to separate file
-template <typename T, size_t N>
-constexpr size_t array_size(const T(&)[N])
-{
-    return N;
-}
-
-PowerLog::PowerLog(uint32_t sampleRate,
+PowerLogBase::PowerLogBase(uint32_t sampleRate,
         uint32_t channelCount,
         audio_format_t format,
         size_t entries,
         size_t framesPerEntry)
-    : mCurrentTime(0)
-    , mCurrentEnergy(0)
-    , mCurrentFrames(0)
-    , mIdx(0)
-    , mConsecutiveZeroes(0)
-    , mSampleRate(sampleRate)
+    : mSampleRate(sampleRate)
     , mChannelCount(channelCount)
     , mFormat(format)
     , mFramesPerEntry(framesPerEntry)
+    , mEntryTimeNs(framesPerEntry * 1e9 / sampleRate)
+    , mMaxTimeSlipNs(std::min((int64_t)200'000'000, mEntryTimeNs))
     , mEntries(entries)
 {
-    (void)mSampleRate; // currently unused, for future use
+    (void)mFormat; // currently unused, for future use
     LOG_ALWAYS_FATAL_IF(!audio_utils_is_compute_power_format_supported(format),
             "unsupported format: %#x", format);
 }
 
-void PowerLog::log(const void *buffer, size_t frames, int64_t nowNs)
-{
-    std::lock_guard<std::mutex> guard(mLock);
-
-    const size_t bytes_per_sample = audio_bytes_per_sample(mFormat);
-    while (frames > 0) {
-        // check partial computation
-        size_t required = mFramesPerEntry - mCurrentFrames;
-        size_t process = std::min(required, frames);
-
-        if (mCurrentTime == 0) {
-            mCurrentTime = nowNs;
-        }
-        mCurrentEnergy +=
-                audio_utils_compute_energy_mono(buffer, mFormat, process * mChannelCount);
-        mCurrentFrames += process;
-
-        ALOGV("nowNs:%lld, required:%zu, process:%zu, mCurrentEnergy:%f, mCurrentFrames:%zu",
-                (long long)nowNs, required, process, mCurrentEnergy, mCurrentFrames);
-        if (process < required) {
-            return;
-        }
-
-        // We store the data as normalized energy per sample. The energy sequence is
-        // zero terminated. Consecutive zeroes are ignored.
-        if (mCurrentEnergy == 0.f) {
-            if (mConsecutiveZeroes++ == 0) {
-                mEntries[mIdx++] = std::make_pair(nowNs, 0.f);
-                // zero terminate the signal sequence.
-            }
-        } else {
-            mConsecutiveZeroes = 0;
-            mEntries[mIdx++] = std::make_pair(mCurrentTime, mCurrentEnergy);
-            ALOGV("writing %lld %f", (long long)mCurrentTime, mCurrentEnergy);
-        }
-        if (mIdx >= mEntries.size()) {
-            mIdx -= mEntries.size();
-        }
-        mCurrentTime = 0;
-        mCurrentEnergy = 0;
-        mCurrentFrames = 0;
-        frames -= process;
-        buffer = (const uint8_t *)buffer + mCurrentFrames * mChannelCount * bytes_per_sample;
+void PowerLogBase::processEnergy(size_t frames, float energy, int64_t nowNs) {
+    // For big entries (i.e. 1 second+) we want to ensure we don't have new data
+    // accumulating into a previous energy segment.
+    if (mCurrentTime > 0
+            && nowNs > mCurrentTime + mCurrentFrames * 1e9 / mSampleRate + mMaxTimeSlipNs) {
+        flushEntry();
     }
+
+    mCurrentEnergy += energy;
+
+    // if we are in a zero run, do not advance.
+    if (mCurrentEnergy == 0.f && mConsecutiveZeroes > 0) return;
+
+    mCurrentFrames += frames;
+    if (mCurrentTime == 0) {
+        mCurrentTime = nowNs;
+    }
+
+    ALOGV("%s: nowNs:%lld, frames:%zu, mCurrentEnergy:%f, mCurrentFrames:%zu",
+            __func__, (long long)nowNs, frames, mCurrentEnergy, mCurrentFrames);
+    if (mCurrentFrames < mFramesPerEntry) return;
+
+    flushEntry();
 }
 
-std::string PowerLog::dumpToString(
+std::string PowerLogBase::dumpToString(
         const char *prefix, size_t lines, int64_t limitNs, bool logPlot) const
 {
-    std::lock_guard<std::mutex> guard(mLock);
-
     const size_t maxColumns = 10;
     const size_t numberOfEntries = mEntries.size();
     if (lines == 0) lines = SIZE_MAX;
@@ -172,7 +140,8 @@ std::string PowerLog::dumpToString(
         // First value is power, second value is whether value is start of
         // a new time stamp.
         std::vector<std::pair<float, bool>> plotEntries;
-        ss << prefix << "Signal power history:\n";
+        const float timeResolution = mFramesPerEntry * 1000.f / mSampleRate;
+        ss << prefix << "Signal power history (resolution: " << timeResolution << " ms):\n";
 
         size_t column = 0;
         bool first = true;
@@ -230,6 +199,92 @@ std::string PowerLog::dumpToString(
         ss << "\n";
     }
     return ss.str();
+}
+
+void PowerLogBase::flushEntry() {
+    // We store the data as normalized energy per sample. The energy sequence is
+    // zero terminated. Consecutive zero entries are ignored.
+    if (mCurrentEnergy == 0.f) {
+        if (mConsecutiveZeroes++ == 0) {
+            mEntries[mIdx++] = std::make_pair(mCurrentTime, 0.f);
+            // zero terminate the signal sequence.
+        }
+    } else {
+        mConsecutiveZeroes = 0;
+        mEntries[mIdx++] = std::make_pair(mCurrentTime, mCurrentEnergy);
+        ALOGV("writing %lld %f", (long long)mCurrentTime, mCurrentEnergy);
+    }
+    if (mIdx >= mEntries.size()) {
+        mIdx -= mEntries.size();
+    }
+    mCurrentTime = 0;
+    mCurrentEnergy = 0;
+    mCurrentFrames = 0;
+}
+
+void PowerLog::log(const void *buffer, size_t frames, int64_t nowNs) {
+    if (frames == 0) return;
+    std::lock_guard <std::mutex> guard(mMutex);
+
+    const size_t bytes_per_sample = audio_bytes_per_sample(mFormat);
+    while (true) {
+        // limit the number of frames to process from the requirements
+        // of each log base.
+        size_t processFrames = mBase[0]->framesToProcess(frames);
+        for (size_t i = 1; i < std::size(mBase); ++i) {
+            processFrames = std::min(processFrames, mBase[i]->framesToProcess(frames));
+        }
+        const float energy = audio_utils_compute_energy_mono(buffer, mFormat,
+                                                             processFrames * mChannelCount);
+        for (const auto& base : mBase) {
+            base->processEnergy(processFrames, energy, nowNs);
+        }
+        frames -= processFrames;
+        if (frames == 0) return;
+        buffer = (const uint8_t *) buffer + processFrames * mChannelCount * bytes_per_sample;
+        nowNs += processFrames * NANOS_PER_SECOND / mSampleRate;
+    }
+}
+
+std::string PowerLog::dumpToString(
+        const char *prefix, size_t lines, int64_t limitNs, bool logPlot) const
+{
+    // Determine how to distribute lines among the logs.
+    const size_t logs = mBase.size();
+    std::vector<size_t> sublines(logs);
+    size_t start = 0;
+
+    if (lines > 0) {
+        // we compute the # of lines per PowerLogBase starting from
+        // largest time granularity / resolution to the finest resolution.
+        //
+        // The largest granularity has the fewest lines, doubling
+        // as the granularity gets finer.
+        // The finest 2 levels have identical number of lines.
+        size_t norm = 1 << (logs - 1);
+        if (logs > 2) norm += (1 << (logs - 2)) - 1;
+        size_t alloc = 0;
+        for (size_t i = 0; i < logs - 1; ++i) {
+            const size_t l = (1 << i) * lines / norm;
+            if (l == 0) {
+                start = i + 1;
+            } else {
+                sublines[i] = l;
+                alloc += l;
+            }
+        }
+        sublines[logs - 1] = lines - alloc;
+    }
+
+    // Our PowerLogBase vector is stored from finest granularity / resolution to largest
+    // granularity.  We dump the logs in reverse order (logs - 1 - "index").
+    std::string s = mBase[logs - 1 - start]->dumpToString(
+            prefix, sublines[start], limitNs, start == logs - 1 ? logPlot : false);
+    for (size_t i = start + 1; i < logs; ++i) {
+        s.append(mBase[logs - 1 - i]->dumpToString(
+                prefix, sublines[i], limitNs, i == logs - 1 ? logPlot : false));
+    }
+    return s;
 }
 
 status_t PowerLog::dump(

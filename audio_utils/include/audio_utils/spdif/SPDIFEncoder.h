@@ -20,6 +20,7 @@
 #include <stdint.h>
 #include <system/audio.h>
 #include <audio_utils/spdif/FrameScanner.h>
+#include <audio_utils/spdif/SPDIF.h>
 
 namespace android {
 
@@ -28,9 +29,6 @@ namespace android {
  * Then wrap the encoded frame in a data burst and send it as if it were PCM.
  * The receiver will see the data burst header and decode the wrapped frame.
  */
-#define SPDIF_MAX_CHANNELS          8
-#define SPDIF_ENCODED_CHANNEL_COUNT 2
-
 class SPDIFEncoder {
 public:
 
@@ -105,9 +103,6 @@ protected:
     size_t    mPayloadBytesPending; // number of bytes needed to finish burst
     // state variable, true if scanning for start of frame
     bool      mScanning;
-
-    static const uint16_t kSPDIFSync1; // Pa
-    static const uint16_t kSPDIFSync2; // Pb
 };
 
 }  // namespace android

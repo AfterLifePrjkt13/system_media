@@ -58,7 +58,7 @@ constexpr size_t kCallbackTimeoutInMs = 20;
 class MelCallbackMock : public MelProcessor::MelCallback {
 public:
     MOCK_METHOD(void, onNewMelValues, (const std::vector<float>&, size_t, size_t,
-              audio_port_handle_t), (const override));
+              audio_port_handle_t, bool), (const override));
     MOCK_METHOD(void, onMomentaryExposure, (float, audio_port_handle_t), (const override));
 };
 
@@ -121,7 +121,8 @@ TEST_P(MelProcessorFixtureTest, CheckNumberOfCallbacks) {
 
     EXPECT_CALL(*mMelCallback.get(), onMomentaryExposure(Gt(mDefaultRs2), Eq(mDeviceId)))
         .Times(AtMost(2));
-    EXPECT_CALL(*mMelCallback.get(), onNewMelValues(_, _, Le(size_t{2}), Eq(mDeviceId))).Times(1);
+    EXPECT_CALL(*mMelCallback.get(),
+                onNewMelValues(_, _, Le(size_t{2}), Eq(mDeviceId), Eq(true))).Times(1);
 
     EXPECT_GT(mProcessor->process(mBuffer.data(), mBuffer.size() * sizeof(float)), 0);
     std::this_thread::sleep_for(std::chrono::milliseconds(kCallbackTimeoutInMs));
@@ -133,13 +134,14 @@ TEST_P(MelProcessorFixtureTest, CheckAWeightingFrequency) {
 
     EXPECT_CALL(*mMelCallback.get(), onMomentaryExposure(Gt(mDefaultRs2), Eq(mDeviceId)))
         .Times(AtMost(2));
-    EXPECT_CALL(*mMelCallback.get(), onNewMelValues(_, _, _, Eq(mDeviceId)))
+    EXPECT_CALL(*mMelCallback.get(), onNewMelValues(_, _, _, Eq(mDeviceId), Eq(true)))
         .Times(1)
         .WillRepeatedly([&] (const std::vector<float>& mel, size_t offset, size_t length,
-                                audio_port_handle_t deviceId) {
+                                audio_port_handle_t deviceId, bool attenuated) {
             EXPECT_EQ(offset, size_t{0});
             EXPECT_EQ(length, mMaxMelsCallback);
             EXPECT_EQ(deviceId, mDeviceId);
+            EXPECT_EQ(true, attenuated);
             float deltaValue = mel[0] - mel[1];
             ALOGV("MEL[%d] = %.2f,  MEL[1000] = %.2f\n", mFrequency, mel[0], mel[1]);
             EXPECT_TRUE(abs(deltaValue - kAWeightFResponse.at(mFrequency)) <= kFilterAccuracy)
@@ -156,7 +158,7 @@ TEST_P(MelProcessorFixtureTest, AttenuationCheck) {
     auto processorAttenuation =
         sp<MelProcessor>::make(mSampleRate, 1, AUDIO_FORMAT_PCM_FLOAT, mMelCallback, mDeviceId+1,
                      mDefaultRs2, mMaxMelsCallback);
-    float attenuationDB = -10.f;
+    float attenuationDB = 10.f;
     std::vector<float> bufferAttenuation;
     float melAttenuation = 0.f;
     float melNoAttenuation = 0.f;
@@ -168,12 +170,13 @@ TEST_P(MelProcessorFixtureTest, AttenuationCheck) {
 
     EXPECT_CALL(*mMelCallback.get(), onMomentaryExposure(Gt(mDefaultRs2), _))
         .Times(AtMost(2 * mMaxMelsCallback));
-    EXPECT_CALL(*mMelCallback.get(), onNewMelValues(_, _, _, _))
+    EXPECT_CALL(*mMelCallback.get(), onNewMelValues(_, _, _, _, Eq(true)))
         .Times(AtMost(2))
         .WillRepeatedly([&] (const std::vector<float>& mel, size_t offset, size_t length,
-                                audio_port_handle_t deviceId) {
+                                audio_port_handle_t deviceId, bool attenuated) {
             EXPECT_EQ(offset, size_t{0});
             EXPECT_EQ(length, mMaxMelsCallback);
+            EXPECT_EQ(true, attenuated);
 
             if (deviceId == mDeviceId) {
                 melNoAttenuation = mel[0];
@@ -188,7 +191,7 @@ TEST_P(MelProcessorFixtureTest, AttenuationCheck) {
     std::this_thread::sleep_for(std::chrono::milliseconds(kCallbackTimeoutInMs));
     // with attenuation for some frequencies the MEL callback does not exceed the RS1 threshold
     if (melAttenuation > 0.f) {
-        EXPECT_EQ(fabsf(melAttenuation - melNoAttenuation), fabsf(attenuationDB));
+        EXPECT_EQ(melNoAttenuation - melAttenuation, attenuationDB);
     }
 }
 

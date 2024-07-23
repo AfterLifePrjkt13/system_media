@@ -32,7 +32,7 @@ import android.hardware.camera.metadata.CameraMetadataSection;
 @VintfStability
 @Backing(type="int")
 enum CameraMetadataSectionStart {
-  % for i in find_all_sections(metadata):
+  % for i in find_all_sections_filtered(metadata, ('extension')):
     ${path_name(i) + '.start' | csym} = CameraMetadataSection.${path_name(i) | csym} << 16,
   % endfor
     VENDOR_SECTION_START = CameraMetadataSection.VENDOR_SECTION << 16,

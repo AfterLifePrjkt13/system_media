@@ -49,34 +49,47 @@ namespace android::audio_utils {
 
 // Lock order
 enum class MutexOrder : uint32_t {
-    kEffectHandle_Mutex = 0,
-    kEffectBase_PolicyMutex = 1,
-    kAudioFlinger_Mutex = 2,
-    kAudioFlinger_HardwareMutex = 3,
-    kDeviceEffectManager_Mutex = 4,
-    kPatchCommandThread_Mutex = 5,
-    kThreadBase_Mutex = 6,
-    kAudioFlinger_ClientMutex = 7,
-    kMelReporter_Mutex = 8,
-    kEffectChain_Mutex = 9,
-    kDeviceEffectProxy_ProxyMutex = 10,
-    kEffectBase_Mutex = 11,
-    kAudioFlinger_UnregisteredWritersMutex = 12,
-    kAsyncCallbackThread_Mutex = 13,
-    kConfigEvent_Mutex = 14,
-    kOutputTrack_TrackMetadataMutex = 15,
-    kPassthruPatchRecord_ReadMutex = 16,
-    kPatchCommandThread_ListenerMutex = 17,
-    kPlaybackThread_AudioTrackCbMutex = 18,
-    kMediaLogNotifier_Mutex = 19,
-    kOtherMutex = 20,
-    kSize = 21,
+    kSpatializer_Mutex = 0,
+    kAudioPolicyEffects_Mutex = 1,
+    kEffectHandle_Mutex = 2,
+    kEffectBase_PolicyMutex = 3,
+    kAudioPolicyService_Mutex = 4,
+    kCommandThread_Mutex = 5,
+    kAudioCommand_Mutex = 6,
+    kUidPolicy_Mutex = 7,
+    kAudioFlinger_Mutex = 8,
+    kAudioFlinger_HardwareMutex = 9,
+    kDeviceEffectManager_Mutex = 10,
+    kPatchCommandThread_Mutex = 11,
+    kThreadBase_Mutex = 12,
+    kAudioFlinger_ClientMutex = 13,
+    kMelReporter_Mutex = 14,
+    kEffectChain_Mutex = 15,
+    kDeviceEffectProxy_ProxyMutex = 16,
+    kEffectBase_Mutex = 17,
+    kAudioFlinger_UnregisteredWritersMutex = 18,
+    kAsyncCallbackThread_Mutex = 19,
+    kConfigEvent_Mutex = 20,
+    kOutputTrack_TrackMetadataMutex = 21,
+    kPassthruPatchRecord_ReadMutex = 22,
+    kPatchCommandThread_ListenerMutex = 23,
+    kPlaybackThread_AudioTrackCbMutex = 24,
+    kAudioPolicyService_NotificationClientsMutex = 25,
+    kMediaLogNotifier_Mutex = 26,
+    kOtherMutex = 27,
+    kSize = 28,
 };
 
 // Lock by name
 inline constexpr const char* const gMutexNames[] = {
+    "Spatializer_Mutex",
+    "AudioPolicyEffects_Mutex",
     "EffectHandle_Mutex",
     "EffectBase_PolicyMutex",
+    "AudioPolicyService_Mutex",
+    "CommandThread_Mutex",
+    "AudioCommand_Mutex",
+    "UidPolicy_Mutex",
     "AudioFlinger_Mutex",
     "AudioFlinger_HardwareMutex",
     "DeviceEffectManager_Mutex",
@@ -94,6 +107,7 @@ inline constexpr const char* const gMutexNames[] = {
     "PassthruPatchRecord_ReadMutex",
     "PatchCommandThread_ListenerMutex",
     "PlaybackThread_AudioTrackCbMutex",
+    "AudioPolicyService_NotificationClientsMutex",
     "MediaLogNotifier_Mutex",
     "OtherMutex",
 };
@@ -105,11 +119,23 @@ using mutex = mutex_impl<AudioMutexAttributes>;
 
 // Capabilities in priority order
 // (declaration only, value is nullptr)
-inline mutex* EffectHandle_Mutex;
+inline mutex* Spatializer_Mutex;
+inline mutex* AudioPolicyEffects_Mutex
+        ACQUIRED_AFTER(android::audio_utils::Spatializer_Mutex);
+inline mutex* EffectHandle_Mutex
+        ACQUIRED_AFTER(android::audio_utils::AudioPolicyEffects_Mutex);
 inline mutex* EffectBase_PolicyMutex
         ACQUIRED_AFTER(android::audio_utils::EffectHandle_Mutex);
-inline mutex* AudioFlinger_Mutex
+inline mutex* AudioPolicyService_Mutex
         ACQUIRED_AFTER(android::audio_utils::EffectBase_PolicyMutex);
+inline mutex* CommandThread_Mutex
+        ACQUIRED_AFTER(android::audio_utils::AudioPolicyService_Mutex);
+inline mutex* AudioCommand_Mutex
+        ACQUIRED_AFTER(android::audio_utils::CommandThread_Mutex);
+inline mutex* UidPolicy_Mutex
+        ACQUIRED_AFTER(android::audio_utils::AudioCommand_Mutex);
+inline mutex* AudioFlinger_Mutex
+        ACQUIRED_AFTER(android::audio_utils::UidPolicy_Mutex);
 inline mutex* AudioFlinger_HardwareMutex
         ACQUIRED_AFTER(android::audio_utils::AudioFlinger_Mutex);
 inline mutex* DeviceEffectManager_Mutex
@@ -142,8 +168,10 @@ inline mutex* PatchCommandThread_ListenerMutex
         ACQUIRED_AFTER(android::audio_utils::PassthruPatchRecord_ReadMutex);
 inline mutex* PlaybackThread_AudioTrackCbMutex
         ACQUIRED_AFTER(android::audio_utils::PatchCommandThread_ListenerMutex);
-inline mutex* MediaLogNotifier_Mutex
+inline mutex* AudioPolicyService_NotificationClientsMutex
         ACQUIRED_AFTER(android::audio_utils::PlaybackThread_AudioTrackCbMutex);
+inline mutex* MediaLogNotifier_Mutex
+        ACQUIRED_AFTER(android::audio_utils::AudioPolicyService_NotificationClientsMutex);
 inline mutex* OtherMutex
         ACQUIRED_AFTER(android::audio_utils::MediaLogNotifier_Mutex);
 
@@ -159,8 +187,14 @@ inline mutex* OtherMutex
     EXCLUDES(android::audio_utils::MediaLogNotifier_Mutex) \
     EXCLUDES_BELOW_MediaLogNotifier_Mutex
 
-#define EXCLUDES_BELOW_PlaybackThread_AudioTrackCbMutex \
+#define EXCLUDES_BELOW_AudioPolicyService_NotificationClientsMutex \
     EXCLUDES_MediaLogNotifier_Mutex
+#define EXCLUDES_AudioPolicyService_NotificationClientsMutex \
+    EXCLUDES(android::audio_utils::AudioPolicyService_NotificationClientsMutex) \
+    EXCLUDES_BELOW_AudioPolicyService_NotificationClientsMutex
+
+#define EXCLUDES_BELOW_PlaybackThread_AudioTrackCbMutex \
+    EXCLUDES_AudioPolicyService_NotificationClientsMutex
 #define EXCLUDES_PlaybackThread_AudioTrackCbMutex \
     EXCLUDES(android::audio_utils::PlaybackThread_AudioTrackCbMutex) \
     EXCLUDES_BELOW_PlaybackThread_AudioTrackCbMutex
@@ -261,8 +295,32 @@ inline mutex* OtherMutex
     EXCLUDES(android::audio_utils::AudioFlinger_Mutex) \
     EXCLUDES_BELOW_AudioFlinger_Mutex
 
-#define EXCLUDES_BELOW_EffectBase_PolicyMutex \
+#define EXCLUDES_BELOW_UidPolicy_Mutex \
     EXCLUDES_AudioFlinger_Mutex
+#define EXCLUDES_UidPolicy_Mutex \
+    EXCLUDES(android::audio_utils::UidPolicy_Mutex) \
+    EXCLUDES_BELOW_UidPolicy_Mutex
+
+#define EXCLUDES_BELOW_AudioCommand_Mutex \
+    EXCLUDES_UidPolicy_Mutex
+#define EXCLUDES_AudioCommand_Mutex \
+    EXCLUDES(android::audio_utils::AudioCommand_Mutex) \
+    EXCLUDES_BELOW_AudioCommand_Mutex
+
+#define EXCLUDES_BELOW_CommandThread_Mutex \
+    EXCLUDES_AudioCommand_Mutex
+#define EXCLUDES_CommandThread_Mutex \
+    EXCLUDES(android::audio_utils::CommandThread_Mutex) \
+    EXCLUDES_BELOW_CommandThread_Mutex
+
+#define EXCLUDES_BELOW_AudioPolicyService_Mutex \
+    EXCLUDES_CommandThread_Mutex
+#define EXCLUDES_AudioPolicyService_Mutex \
+    EXCLUDES(android::audio_utils::AudioPolicyService_Mutex) \
+    EXCLUDES_BELOW_AudioPolicyService_Mutex
+
+#define EXCLUDES_BELOW_EffectBase_PolicyMutex \
+    EXCLUDES_AudioPolicyService_Mutex
 #define EXCLUDES_EffectBase_PolicyMutex \
     EXCLUDES(android::audio_utils::EffectBase_PolicyMutex) \
     EXCLUDES_BELOW_EffectBase_PolicyMutex
@@ -273,8 +331,20 @@ inline mutex* OtherMutex
     EXCLUDES(android::audio_utils::EffectHandle_Mutex) \
     EXCLUDES_BELOW_EffectHandle_Mutex
 
-#define EXCLUDES_AUDIO_ALL \
+#define EXCLUDES_BELOW_AudioPolicyEffects_Mutex \
     EXCLUDES_EffectHandle_Mutex
+#define EXCLUDES_AudioPolicyEffects_Mutex \
+    EXCLUDES(android::audio_utils::AudioPolicyEffects_Mutex) \
+    EXCLUDES_BELOW_AudioPolicyEffects_Mutex
+
+#define EXCLUDES_BELOW_Spatializer_Mutex \
+    EXCLUDES_AudioPolicyEffects_Mutex
+#define EXCLUDES_Spatializer_Mutex \
+    EXCLUDES(android::audio_utils::Spatializer_Mutex) \
+    EXCLUDES_BELOW_Spatializer_Mutex
+
+#define EXCLUDES_AUDIO_ALL \
+    EXCLUDES_Spatializer_Mutex
 
 // --- End generated section
 
@@ -319,17 +389,177 @@ public:
     static constexpr bool abort_on_invalid_unlock_ = true;
 };
 
+// relaxed_atomic implements the same features as std::atomic<T> but using
+// std::memory_order_relaxed as default.
+//
+// This is the minimum consistency for the multiple writer multiple reader case.
+
+template <typename T>
+class relaxed_atomic : private std::atomic<T> {
+public:
+    constexpr relaxed_atomic(T desired = {}) : std::atomic<T>(desired) {}
+    operator T() const { return std::atomic<T>::load(std::memory_order_relaxed); }
+    T operator=(T desired) {
+        std::atomic<T>::store(desired, std::memory_order_relaxed); return desired;
+    }
+
+    T operator--() { return std::atomic<T>::fetch_sub(1, std::memory_order_relaxed) - 1; }
+    T operator++() { return std::atomic<T>::fetch_add(1, std::memory_order_relaxed) + 1;  }
+    T operator+=(const T value) {
+        return std::atomic<T>::fetch_add(value, std::memory_order_relaxed) + value;
+    }
+
+    T load(std::memory_order order = std::memory_order_relaxed) const {
+        return std::atomic<T>::load(order);
+    }
+    T fetch_add(T arg, std::memory_order order =std::memory_order_relaxed) {
+        return std::atomic<T>::fetch_add(arg, order);
+    }
+    bool compare_exchange_weak(
+            T& expected, T desired, std::memory_order order = std::memory_order_relaxed) {
+        return std::atomic<T>::compare_exchange_weak(expected, desired, order);
+    }
+};
+
+// unordered_atomic implements data storage such that memory reads have a value
+// consistent with a memory write in some order, i.e. not having values
+// "out of thin air".
+//
+// Unordered memory reads and writes may not actually take place but be implicitly cached.
+// Nevertheless, a memory read should return at least as contemporaneous a value
+// as the last memory write before the write thread memory barrier that
+// preceded the most recent read thread memory barrier.
+//
+// This is weaker than relaxed_atomic and has no equivalent C++ terminology.
+// unordered_atomic would be used for a single writer, multiple reader case,
+// where data access of type T would be a implemented by the compiler and
+// hw architecture with a single "uninterruptible" memory operation.
+// (The current implementation holds true for general realized CPU architectures).
+// Note that multiple writers would cause read-modify-write unordered_atomic
+// operations to have inconsistent results.
+//
+// unordered_atomic is implemented with normal operations such that compiler
+// optimizations can take place which would otherwise be discouraged for atomics.
+// https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0062r1.html
+
+template <typename T>
+class unordered_atomic {
+    static_assert(std::atomic<T>::is_always_lock_free);
+public:
+    constexpr unordered_atomic(T desired = {}) : t_(desired) {}
+    operator T() const { return t_; }
+    T& operator=(T desired) { return t_ = desired; }
+
+    T& operator--() { const T temp = t_ - 1; return t_ = temp; }
+    T& operator++() { const T temp = t_ + 1; return t_ = temp; }
+    T& operator+=(const T value) { const T temp = t_ + value; return t_ = temp; }
+
+    T load(std::memory_order order = std::memory_order_relaxed) const { (void)order; return t_; }
+
+private:
+    T t_;
+};
+
+inline constexpr pid_t kInvalidTid = -1;
+
+// While std::atomic with the default std::memory_order_seq_cst
+// access could be used, it results in performance loss over less
+// restrictive memory access.
+
+// stats_atomic is a multiple writer multiple reader object.
+//
+// This is normally used to increment statistics counters on
+// mutex priority categories.
+//
+// We used relaxed_atomic instead of std::atomic/memory_order_seq_cst here.
+template <typename T>
+using stats_atomic = relaxed_atomic<T>;
+
+// thread_atomic is a single writer multiple reader object.
+//
+// This is normally accessed as a thread local (hence single writer)
+// but may be accessed (rarely) by multiple readers on deadlock
+// detection which does not modify the data.
+//
+// We use unordered_atomic instead of std::atomic/memory_order_seq_cst here.
+template <typename T>
+using thread_atomic = unordered_atomic<T>;
+
+inline void compiler_memory_barrier() {
+    // Reads or writes are not migrated or cached by the compiler across this barrier.
+    asm volatile("" ::: "memory");
+
+    // if not using gnu / clang, compare with compiler-only barrier generated by
+    // std::atomic_signal_fence(std::memory_order_seq_cst);
+    // https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2020/p0124r7.html
+}
+
+// The mutex locking is thread-safe.
+//
+// However, the mutex metadata (statistics and thread info) updates are not locked
+// by an internal mutex for efficiency reasons. Instead, they use atomics, with
+// the possibility of false negatives since they are not sampled synchronously.
+//
+// To prevent the compiler from excessively caching the statistics and thread metadata
+// which makes this asynchronous atomic sampling worse, as unordered or relaxed atomics
+// do not implicitly impose any memory barriers,
+// we can elect to explicitly issue compiler memory barriers to ensure
+// metadata visibility across threads. This is optional, and only useful if
+// the compiler does aggressive inlining.
+//
+inline void metadata_memory_barrier_if_needed() {
+    // check the level of atomicity used for thread metadata to alter the
+    // use of a barrier here.
+    if constexpr (std::is_same_v<thread_atomic<int32_t>, unordered_atomic<int32_t>>
+            || std::is_same_v<thread_atomic<int32_t>, relaxed_atomic<int32_t>>) {
+        compiler_memory_barrier();
+    }
+}
+
 /**
  * Helper method to accumulate floating point values to an atomic
  * prior to C++23 support of atomic<float> atomic<double> accumulation.
  */
 template <typename AccumulateType, typename ValueType>
-void atomic_add_to(std::atomic<AccumulateType> &dst, ValueType src) {
+requires std::is_floating_point<AccumulateType>::value
+void atomic_add_to(std::atomic<AccumulateType> &dst, ValueType src,
+        std::memory_order order = std::memory_order_seq_cst) {
     static_assert(std::atomic<AccumulateType>::is_always_lock_free);
     AccumulateType expected;
     do {
         expected = dst;
-    } while (!dst.compare_exchange_weak(expected, expected + src));
+    } while (!dst.compare_exchange_weak(expected, expected + src, order));
+}
+
+template <typename AccumulateType, typename ValueType>
+requires std::is_integral<AccumulateType>::value
+void atomic_add_to(std::atomic<AccumulateType> &dst, ValueType src,
+        std::memory_order order = std::memory_order_seq_cst) {
+    dst.fetch_add(src, order);
+}
+
+template <typename AccumulateType, typename ValueType>
+requires std::is_floating_point<AccumulateType>::value
+void atomic_add_to(relaxed_atomic<AccumulateType> &dst, ValueType src,
+        std::memory_order order = std::memory_order_relaxed) {
+    AccumulateType expected;
+    do {
+        expected = dst;
+    } while (!dst.compare_exchange_weak(expected, expected + src, order));
+}
+
+template <typename AccumulateType, typename ValueType>
+requires std::is_integral<AccumulateType>::value
+void atomic_add_to(relaxed_atomic<AccumulateType> &dst, ValueType src,
+        std::memory_order order = std::memory_order_relaxed) {
+    dst.fetch_add(src, order);
+}
+
+template <typename AccumulateType, typename ValueType>
+void atomic_add_to(unordered_atomic<AccumulateType> &dst, ValueType src,
+        std::memory_order order = std::memory_order_relaxed) {
+    (void)order; // unused
+    dst = dst + src;
 }
 
 /**
@@ -346,11 +576,13 @@ template <typename CounterType, typename AccumulatorType>
 struct mutex_stat {
     static_assert(std::is_floating_point_v<AccumulatorType>);
     static_assert(std::is_integral_v<CounterType>);
-    std::atomic<CounterType> locks = 0;        // number of times locked
-    std::atomic<CounterType> unlocks = 0;      // number of times unlocked
-    std::atomic<CounterType> waits = 0;         // number of locks that waitedwa
-    std::atomic<AccumulatorType> wait_sum_ns = 0.;    // sum of time waited.
-    std::atomic<AccumulatorType> wait_sumsq_ns = 0.;  // sumsq of time waited.
+    static_assert(std::atomic<CounterType>::is_always_lock_free);
+    static_assert(std::atomic<AccumulatorType>::is_always_lock_free);
+    stats_atomic<CounterType> locks = 0;        // number of times locked
+    stats_atomic<CounterType> unlocks = 0;      // number of times unlocked
+    stats_atomic<CounterType> waits = 0;         // number of locks that waited
+    stats_atomic<AccumulatorType> wait_sum_ns = 0.;    // sum of time waited.
+    stats_atomic<AccumulatorType> wait_sumsq_ns = 0.;  // sumsq of time waited.
 
     template <typename WaitTimeType>
     void add_wait_time(WaitTimeType wait_ns) {
@@ -443,7 +675,7 @@ struct mutex_stat {
 template <typename Item, typename Payload, size_t N>
 class atomic_stack {
 public:
-    using item_payload_pair_t = std::pair<std::atomic<Item>, std::atomic<Payload>>;
+    using item_payload_pair_t = std::pair<thread_atomic<Item>, thread_atomic<Payload>>;
 
     /**
      * Puts the item at the top of the stack.
@@ -567,8 +799,8 @@ public:
     const auto& invalid() const { return invalid_; }
 
 private:
-    std::atomic<size_t> top_ = 0;       // ranges from 0 to N - 1
-    std::atomic<size_t> true_top_ = 0;  // always >= top_.
+    thread_atomic<size_t> top_ = 0;       // ranges from 0 to N - 1
+    thread_atomic<size_t> true_top_ = 0;  // always >= top_.
     // if true_top_ == top_ the subset stack is complete.
 
     /*
@@ -653,6 +885,23 @@ public:
         return mutexes_held_.remove(mutex);
     }
 
+    // Variants used by condition_variable on wait() that handle
+    // hint metadata. This is used by deadlock detection algorithm to inform we
+    // are waiting on a worker thread identified by notifier_tid.
+
+    void push_held_for_cv(MutexHandle mutex, Order order) {
+        push_held(mutex, order);
+        // condition wait has expired.  always invalidate.
+        cv_info_.first = kInvalidTid;
+    }
+
+    bool remove_held_for_cv(MutexHandle mutex, Order order, pid_t notifier_tid) {
+        // last condition on the mutex overwrites.
+        cv_info_.second = order;
+        cv_info_.first = notifier_tid;
+        return remove_held(mutex);
+    }
+
     /*
      * Due to the fact that the thread_mutex_info contents are not globally locked,
      * there may be temporal shear.  The string representation is
@@ -663,6 +912,12 @@ public:
         s.append("tid: ").append(std::to_string(static_cast<int>(tid_)));
         s.append("\nwaiting: ").append(std::to_string(
                 reinterpret_cast<uintptr_t>(mutex_wait_.load())));
+        // inform if there is a condition variable wait associated with a known thread.
+        if (cv_info_.first != kInvalidTid) {
+            s.append("\ncv_tid: ").append(std::to_string(cv_info_.first.load()))
+                    .append("  cv_order: ").append(std::to_string(
+                            static_cast<size_t>(cv_info_.second.load())));
+        }
         s.append("\nheld: ").append(mutexes_held_.to_string());
         return s;
     }
@@ -680,7 +935,9 @@ public:
     }
 
     const pid_t tid_;                                   // me
-    std::atomic<MutexHandle> mutex_wait_{};             // mutex waiting for
+    thread_atomic<MutexHandle> mutex_wait_{};           // mutex waiting for
+    std::pair<thread_atomic<pid_t>, thread_atomic<Order>> cv_info_{
+        kInvalidTid, (Order)-1 };  // condition variable wait with known notifier tid.
     atomic_stack_t mutexes_held_;  // mutexes held
 };
 
@@ -720,6 +977,7 @@ public:
 
     const pid_t tid;         // tid for which the deadlock was checked
     bool has_cycle = false;  // true if there is a cycle detected
+    bool cv_detected = false; // true if the logic went through a condition variable.
     std::vector<std::pair<pid_t, std::string>> chain;  // wait chain of tids and mutexes.
 };
 
@@ -808,20 +1066,18 @@ public:
     }
 
     /**
-     * Returns the tid mutex pointer (a void*) if it is waiting.
+     * Returns the thread info for a pid_t.
      *
      * It should use a copy of the registry map which is not changing
      * as it does not take any lock.
      */
-    static void* tid_to_mutex_wait(
+    static std::shared_ptr<ThreadInfo> tid_to_info(
             const std::unordered_map<pid_t, std::weak_ptr<ThreadInfo>>& registry_map,
             pid_t tid) {
         const auto it = registry_map.find(tid);
         if (it == registry_map.end()) return {};
         const auto& weak_info = it->second;  // unmapped returns empty weak_ptr.
-        const auto info = weak_info.lock();
-        if (!info) return {};
-        return info->mutex_wait_.load();
+        return weak_info.lock();
     }
 
     /**
@@ -847,8 +1103,14 @@ public:
         deadlock_info_t deadlock_info{tid};
 
         // if tid not waiting, return.
-        void* m = tid_to_mutex_wait(registry_map, tid);
-        if (m == nullptr) return deadlock_info;
+
+        const auto tinfo_original_tid = tid_to_info(registry_map, tid);
+        if (tinfo_original_tid == nullptr) return deadlock_info;
+
+        void* m = tinfo_original_tid->mutex_wait_.load();
+        pid_t cv_tid = tinfo_original_tid->cv_info_.first;
+        if (m == nullptr && cv_tid == kInvalidTid) return deadlock_info;
+        size_t cv_order = static_cast<size_t>(tinfo_original_tid->cv_info_.second.load());
 
         bool subset = false; // do we have missing mutex data per thread?
 
@@ -898,14 +1160,29 @@ public:
         // until we get no more tids, or a tid cycle.
         std::unordered_set<pid_t> visited;
         visited.insert(tid);  // mark the original tid, we start there for cycle detection.
-        while (true) {
-            // no tid associated with the mutex.
-            if (mutex_to_tid.count(m) == 0) return deadlock_info;
-            const auto [tid2, order] = mutex_to_tid[m];
+        for (pid_t tid2 = tid; true;) {
+            size_t order;
+            bool cv_detected = false;  // current wait relationship is through condition_variable.
+
+            if (m != nullptr && mutex_to_tid.count(m)) {
+                // waiting on mutex held by another tid.
+                std::tie(tid2, order) = mutex_to_tid[m];
+            }  else if (cv_tid != kInvalidTid) {
+                // condition variable waiting on tid.
+                tid2 = cv_tid;
+                order = cv_order;
+                deadlock_info.cv_detected = true;
+                cv_detected = true;
+            } else {
+                // no mutex or cv info.
+                return deadlock_info;
+            }
 
             // add to chain.
+            // if waiting through a condition variable, we prefix with "cv-".
             const auto name = order < std::size(mutex_names) ? mutex_names[order] : "unknown";
-            deadlock_info.chain.emplace_back(tid2, name);
+            deadlock_info.chain.emplace_back(tid2, cv_detected ?
+                    std::string("cv-").append(name).c_str() : name);
 
             // cycle detected
             if (visited.count(tid2)) {
@@ -915,8 +1192,10 @@ public:
             visited.insert(tid2);
 
             // if tid not waiting return (could be blocked on binder).
-            m = tid_to_mutex_wait(registry_map, tid2);
-            if (m == nullptr) return deadlock_info;
+            const auto tinfo = tid_to_info(registry_map, tid2);
+            m = tinfo->mutex_wait_.load();
+            cv_tid = tinfo->cv_info_.first;
+            cv_order = static_cast<size_t>(tinfo->cv_info_.second.load());
         }
     }
 
@@ -943,15 +1222,23 @@ public:
 
     // We use composition here.
     // No copy/move ctors as the member std::mutex has it deleted.
+
+    // Constructor selects priority inheritance based on the platform default.
     mutex_impl(typename Attributes::order_t order = Attributes::order_default_)
+        : mutex_impl(mutex_get_enable_flag(), order)
+    {}
+
+    // Constructor selects priority inheritance based on input argument.
+    mutex_impl(bool priority_inheritance,
+            typename Attributes::order_t order = Attributes::order_default_)
         : order_(order)
         , stat_{get_mutex_stat_array()[static_cast<size_t>(order)]}
     {
         LOG_ALWAYS_FATAL_IF(static_cast<size_t>(order) >= Attributes::order_size_,
-                "mutex order %u is equal to or greater than order limit:%zu",
-                order, Attributes::order_size_);
+                "mutex order %zu is equal to or greater than order limit:%zu",
+                static_cast<size_t>(order), Attributes::order_size_);
 
-        if (!mutex_get_enable_flag()) return;
+        if (!priority_inheritance) return;
 
         pthread_mutexattr_t attr;
         int ret = pthread_mutexattr_init(&attr);
@@ -972,7 +1259,8 @@ public:
         if (ret != 0) {
             ALOGW("%s, pthread_mutex_init returned %d", __func__, ret);
         }
-        ALOGV("%s: audio_mutex initialized: ret:%d  order:%u", __func__, ret, order_);
+        ALOGV("%s: audio_mutex initialized: ret:%d  order:%zu",
+                __func__, ret, static_cast<size_t>(order_));
     }
 
     ~mutex_impl() {
@@ -991,11 +1279,13 @@ public:
             m_.lock();
         }
         lock_scoped_stat_t::post_lock(*this);
+        metadata_memory_barrier_if_needed();
     }
 
     void unlock() RELEASE() {
         lock_scoped_stat_t::pre_unlock(*this);
         m_.unlock();
+        metadata_memory_barrier_if_needed();
     }
 
     bool try_lock(int64_t timeout_ns = 0) TRY_ACQUIRE(true) {
@@ -1011,10 +1301,12 @@ public:
             lock_scoped_stat_t ls(*this);
             if (pthread_mutex_timedlock(m_.native_handle(), &ts) != 0) {
                 ls.ignoreWaitTime();  // didn't get lock, don't count wait time
+                metadata_memory_barrier_if_needed();
                 return false;
             }
         }
         lock_scoped_stat_t::post_lock(*this);
+        metadata_memory_barrier_if_needed();
         return true;
     }
 
@@ -1180,9 +1472,12 @@ public:
     // helper class for registering statistics for a cv wait.
     class cv_wait_scoped_stat_enabled {
     public:
-        explicit cv_wait_scoped_stat_enabled(mutex& m) : mutex_(m) {
+        explicit cv_wait_scoped_stat_enabled(mutex& m, pid_t notifier_tid = kInvalidTid)
+            : mutex_(m) {
             ++mutex_.stat_.unlocks;
-            const bool success = mutex_.get_thread_mutex_info()->remove_held(&mutex_);
+            // metadata that we relinquish lock.
+            const bool success = mutex_.get_thread_mutex_info()->remove_held_for_cv(
+                    &mutex_, mutex_.order_, notifier_tid);
             LOG_ALWAYS_FATAL_IF(Attributes::abort_on_invalid_unlock_
                     && mutex_get_enable_flag()
                     && !success,
@@ -1191,7 +1486,8 @@ public:
 
         ~cv_wait_scoped_stat_enabled() {
             ++mutex_.stat_.locks;
-            mutex_.get_thread_mutex_info()->push_held(&mutex_, mutex_.order_);
+            // metadata that we are reacquiring lock.
+            mutex_.get_thread_mutex_info()->push_held_for_cv(&mutex_, mutex_.order_);
         }
     private:
         mutex& mutex_;
@@ -1234,7 +1530,27 @@ inline thread_mutex_info<MutexHandle, Order, N>::~thread_mutex_info() {
 }
 
 // audio_utils::lock_guard only works with the defined mutex.
-using lock_guard = std::lock_guard<mutex>;
+//
+// We add [[nodiscard]] to prevent accidentally ignoring construction.
+class [[nodiscard]] SCOPED_CAPABILITY lock_guard {
+public:
+    explicit lock_guard(mutex& m) ACQUIRE(m)
+        : mutex_(m) {
+        mutex_.lock();
+    }
+
+    ~lock_guard() RELEASE() {
+        mutex_.unlock();
+    }
+
+    lock_guard(const lock_guard&) = delete;
+
+    // Note: a member reference will also delete this.
+    lock_guard& operator=(const lock_guard&) = delete;
+
+private:
+    mutex& mutex_;
+};
 
 // audio_utils::unique_lock is based on std::unique_lock<std::mutex>
 // because std::condition_variable is optimized for std::unique_lock<std::mutex>
@@ -1245,8 +1561,9 @@ using lock_guard = std::lock_guard<mutex>;
 //
 // We omit swap(), release() and move methods which don't have thread
 // safety annotations.
-
-class SCOPED_CAPABILITY unique_lock {
+//
+// We add [[nodiscard]] to prevent accidentally ignoring construction.
+class [[nodiscard]] SCOPED_CAPABILITY unique_lock {
 public:
     explicit unique_lock(mutex& m) ACQUIRE(m)
         : ul_(m.std_mutex(), std::defer_lock)
@@ -1266,12 +1583,14 @@ public:
         }
         mutex::lock_scoped_stat_t::post_lock(mutex_);
         held = true;
+        metadata_memory_barrier_if_needed();
     }
 
     void unlock() RELEASE() {
         mutex::lock_scoped_stat_t::pre_unlock(mutex_);
         held = false;
         ul_.unlock();
+        metadata_memory_barrier_if_needed();
     }
 
     bool try_lock() TRY_ACQUIRE(true) {
@@ -1279,6 +1598,7 @@ public:
         if (!ul_.try_lock()) return false;
         mutex::lock_scoped_stat_t::post_lock(mutex_);
         held = true;
+        metadata_memory_barrier_if_needed();
         return true;
     }
 
@@ -1289,6 +1609,7 @@ public:
         if (!ul_.try_lock_for(timeout_duration)) return false;
         mutex::lock_scoped_stat_t::post_lock(mutex_);
         held = true;
+        metadata_memory_barrier_if_needed();
         return true;
     }
 
@@ -1299,6 +1620,7 @@ public:
         if (!ul_.try_lock_until(timeout_time)) return false;
         mutex::lock_scoped_stat_t::post_lock(mutex_);
         held = true;
+        metadata_memory_barrier_if_needed();
         return true;
     }
 
@@ -1323,6 +1645,9 @@ private:
 // It is possible to use std::condition_variable_any for a generic mutex type,
 // but it is less efficient.
 
+// The audio_utils condition_variable permits speicifying a "notifier_tid"
+// metadata in the wait() methods, which states the expected tid of the
+// notification thread for deadlock / wait detection purposes.
 class condition_variable {
 public:
     void notify_one() noexcept {
@@ -1333,44 +1658,46 @@ public:
         cv_.notify_all();
     }
 
-    void wait(unique_lock& lock) {
-        mutex::cv_wait_scoped_stat_t ws(lock.native_mutex());
+    void wait(unique_lock& lock, pid_t notifier_tid = kInvalidTid) {
+        mutex::cv_wait_scoped_stat_t ws(lock.native_mutex(), notifier_tid);
         cv_.wait(lock.std_unique_lock());
     }
 
     template<typename Predicate>
-    void wait(unique_lock& lock, Predicate stop_waiting) {
-        mutex::cv_wait_scoped_stat_t ws(lock.native_mutex());
+    void wait(unique_lock& lock, Predicate stop_waiting, pid_t notifier_tid = kInvalidTid) {
+        mutex::cv_wait_scoped_stat_t ws(lock.native_mutex(), notifier_tid);
         cv_.wait(lock.std_unique_lock(), std::move(stop_waiting));
     }
 
     template<typename Rep, typename Period>
     std::cv_status wait_for(unique_lock& lock,
-            const std::chrono::duration<Rep, Period>& rel_time) {
-        mutex::cv_wait_scoped_stat_t ws(lock.native_mutex());
+            const std::chrono::duration<Rep, Period>& rel_time,
+            pid_t notifier_tid = kInvalidTid) {
+        mutex::cv_wait_scoped_stat_t ws(lock.native_mutex(), notifier_tid);
         return cv_.wait_for(lock.std_unique_lock(), rel_time);
     }
 
     template<typename Rep, typename Period, typename Predicate>
     bool wait_for(unique_lock& lock,
             const std::chrono::duration<Rep, Period>& rel_time,
-            Predicate stop_waiting) {
-        mutex::cv_wait_scoped_stat_t ws(lock.native_mutex());
+            Predicate stop_waiting, pid_t notifier_tid = kInvalidTid) {
+        mutex::cv_wait_scoped_stat_t ws(lock.native_mutex(), notifier_tid);
         return cv_.wait_for(lock.std_unique_lock(), rel_time, std::move(stop_waiting));
     }
 
     template<typename Clock, typename Duration>
     std::cv_status wait_until(unique_lock& lock,
-            const std::chrono::time_point<Clock, Duration>& timeout_time) {
-        mutex::cv_wait_scoped_stat_t ws(lock.native_mutex());
+            const std::chrono::time_point<Clock, Duration>& timeout_time,
+            pid_t notifier_tid = kInvalidTid) {
+        mutex::cv_wait_scoped_stat_t ws(lock.native_mutex(), notifier_tid);
         return cv_.wait_until(lock.std_unique_lock(), timeout_time);
     }
 
     template<typename Clock, typename Duration, typename Predicate>
     bool wait_until(unique_lock& lock,
             const std::chrono::time_point<Clock, Duration>& timeout_time,
-            Predicate stop_waiting) {
-        mutex::cv_wait_scoped_stat_t ws(lock.native_mutex());
+            Predicate stop_waiting, pid_t notifier_tid = kInvalidTid) {
+        mutex::cv_wait_scoped_stat_t ws(lock.native_mutex(), notifier_tid);
         return cv_.wait_until(lock.std_unique_lock(), timeout_time, std::move(stop_waiting));
     }
 
@@ -1385,12 +1712,13 @@ private:
 // audio_utils::scoped_lock has proper thread safety annotations.
 // std::scoped_lock does not have thread safety annotations for greater than 1 lock
 // since the variadic template doesn't convert to the variadic macro def.
-
+//
+// We add [[nodiscard]] to prevent accidentally ignoring construction.
 template <typename ...Mutexes>
 class scoped_lock;
 
 template <typename Mutex1>
-class SCOPED_CAPABILITY scoped_lock<Mutex1>
+class [[nodiscard]] SCOPED_CAPABILITY scoped_lock<Mutex1>
     : private std::scoped_lock<Mutex1> {
 public:
     explicit scoped_lock(Mutex1& m) ACQUIRE(m) : std::scoped_lock<Mutex1>(m) {}
@@ -1398,7 +1726,7 @@ public:
 };
 
 template <typename Mutex1, typename Mutex2>
-class SCOPED_CAPABILITY scoped_lock<Mutex1, Mutex2>
+class [[nodiscard]] SCOPED_CAPABILITY scoped_lock<Mutex1, Mutex2>
     : private std::scoped_lock<Mutex1, Mutex2> {
 public:
     scoped_lock(Mutex1& m1, Mutex2& m2) ACQUIRE(m1, m2)
@@ -1407,7 +1735,7 @@ public:
 };
 
 template <typename Mutex1, typename Mutex2, typename Mutex3>
-class SCOPED_CAPABILITY scoped_lock<Mutex1, Mutex2, Mutex3>
+class [[nodiscard]] SCOPED_CAPABILITY scoped_lock<Mutex1, Mutex2, Mutex3>
     : private std::scoped_lock<Mutex1, Mutex2, Mutex3> {
 public:
     scoped_lock(Mutex1& m1, Mutex2& m2, Mutex3& m3) ACQUIRE(m1, m2, m3)
@@ -1416,7 +1744,7 @@ public:
 };
 
 template <typename ...Mutexes>
-class scoped_lock : private std::scoped_lock<Mutexes...> {
+class [[nodiscard]] scoped_lock : private std::scoped_lock<Mutexes...> {
 public:
     scoped_lock(Mutexes&... mutexes)
       : std::scoped_lock<Mutexes...>(mutexes...) {}

@@ -26,6 +26,25 @@ cc_benchmark {
 }
 
 cc_benchmark {
+    name: "audio_power_benchmark",
+    host_supported: true,
+
+    srcs: ["audio_power_benchmark.cpp"],
+    cflags: [
+        "-Wall",
+        "-Werror",
+        "-Wextra",
+    ],
+    shared_libs: [
+        "libbase",
+        "liblog",
+    ],
+    static_libs: [
+        "libaudioutils",
+    ],
+}
+
+cc_benchmark {
     name: "biquad_filter_benchmark",
     host_supported: true,
 

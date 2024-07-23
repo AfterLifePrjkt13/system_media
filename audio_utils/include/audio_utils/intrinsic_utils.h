@@ -49,7 +49,53 @@ inline constexpr bool dependent_false_v = false;
 template<typename T, size_t N>
 struct internal_array_t {
     T v[N];
+    static constexpr size_t size() { return N; }
 };
+
+// Detect if the value is directly addressable as an array.
+// This is more advanced than std::is_array and works with neon intrinsics.
+template<typename T>
+concept is_array_like = requires(T a) {
+    a[0];  // can index first element
+};
+
+// Vector convert between type T to type S.
+template <typename S, typename T>
+inline S vconvert(const T& in) {
+    S out;
+
+    if constexpr (is_array_like<S>) {
+        if constexpr (is_array_like<T>) {
+#pragma unroll
+            // neon intrinsics need sizeof.
+            for (size_t i = 0; i < sizeof(in) / sizeof(in[0]); ++i) {
+                out[i] = in[i];
+            }
+        } else { /* constexpr */
+            const auto& [inv] = in;
+#pragma unroll
+            for (size_t i = 0; i < T::size(); ++i) {
+                out[i] = inv[i];
+            }
+        }
+    } else { /* constexpr */
+        auto& [outv] = out;
+        if constexpr (is_array_like<T>) {
+#pragma unroll
+            // neon intrinsics need sizeof.
+            for (size_t i = 0; i < sizeof(in) / sizeof(in[0]); ++i) {
+                outv[i] = in[i];
+            }
+        } else { /* constexpr */
+            const auto& [inv] = in;
+#pragma unroll
+            for (size_t i = 0; i < T::size(); ++i) {
+                outv[i] = inv[i];
+            }
+        }
+    }
+    return out;
+}
 
 /*
   Generalized template functions for the Neon instruction set.
@@ -114,6 +160,46 @@ static inline T vadd(T a, T b) {
              r2 = vadd(a2, b2);
              return ret;
         }
+    }
+}
+
+// add internally
+template<typename T>
+inline auto vaddv(const T& a) {
+    if constexpr (std::is_same_v<T, float> || std::is_same_v<T, double>) {
+        return a;
+
+#ifdef USE_NEON
+    } else if constexpr (std::is_same_v<T, float32x2_t>) {
+        return vaddv_f32(a);
+#if defined(__aarch64__)
+    } else if constexpr (std::is_same_v<T, float32x4_t>) {
+        return vaddvq_f32(a);
+    } else if constexpr (std::is_same_v<T, float64x2_t>) {
+        return vaddvq_f64(a);
+#endif
+#endif // USE_NEON
+    } else if constexpr (is_array_like<T>) {
+        using ret_t = std::decay_t<decltype(a[0])>;
+
+        ret_t ret{};
+        // array_like is not the same as an array, so we use sizeof here
+        // to handle neon instrinsics.
+#pragma unroll
+        for (size_t i = 0; i < sizeof(a) / sizeof(a[0]); ++i) {
+            ret += a[i];
+        }
+        return ret;
+    } else /* constexpr */ {
+        const auto &[aval] = a;
+        using ret_t = std::decay_t<decltype(aval[0])>;
+        ret_t ret{};
+
+#pragma unroll
+        for (size_t i = 0; i < std::size(aval); ++i) {
+            ret += aval[i];
+        }
+        return ret;
     }
 }
 
@@ -264,7 +350,7 @@ static inline T vmla(T a, F b, T c) {
 
 // fused multiply-add a + b * c
 template<typename T>
-static inline T vmla(T a, T b, T c) {
+inline T vmla(const T& a, const T& b, const T& c) {
     if constexpr (std::is_same_v<T, float> || std::is_same_v<T, double>) {
         return a + b * c;
 

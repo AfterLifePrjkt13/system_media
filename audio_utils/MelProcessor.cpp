@@ -345,7 +345,7 @@ int32_t MelProcessor::process(const void* buffer, size_t bytes) {
             audio_utils_power_from_energy(getCombinedChannelEnergy_l())
                 + kMelAdjustmentDb
                 + kMeldBFSTodBSPLOffset
-                + mAttenuationDB, 0.0f));
+                - mAttenuationDB, 0.0f));
 
         samples -= processSamples;
         buffer =
@@ -403,7 +403,8 @@ void MelProcessor::MelWorker::run() {
                 if (data.mMel != 0.f) {
                     callback->onMomentaryExposure(data.mMel, data.mPort);
                 } else if (data.mMelsSize != 0) {
-                    callback->onNewMelValues(data.mMels, 0, data.mMelsSize, data.mPort);
+                    callback->onNewMelValues(data.mMels, 0, data.mMelsSize,
+                                             data.mPort, /*attenuated=*/true);
                 } else {
                     ALOGE("%s::run(): Invalid MEL data. Skipping callback", mThreadName.c_str());
                 }

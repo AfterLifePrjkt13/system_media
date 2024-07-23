@@ -8,7 +8,8 @@ package {
 
 subdirs = ["tests"]
 
-cc_library_shared {
+// Note: The static version of libcamera_metadata should be used for testing ONLY.
+cc_library {
     name: "libcamera_metadata",
     vendor_available: true,
     product_available: true,

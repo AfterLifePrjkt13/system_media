@@ -966,6 +966,15 @@ int audio_route_force_reset_and_update_path(struct audio_route *ar, const char *
     return audio_route_update_path(ar, name, DIRECTION_REVERSE_RESET);
 }
 
+int audio_route_supports_path(struct audio_route *ar, const char *name)
+{
+    if (!path_get_by_name(ar, name)) {
+        return -1;
+    }
+
+    return 0;
+}
+
 struct audio_route *audio_route_init(unsigned int card, const char *xml_path)
 {
     struct config_parse_state state;
